@@ -705,14 +705,15 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 .dtx{flex:1;min-width:0}.dtx b{display:block}
 .dlug{display:block;font-size:12px;color:var(--muted);margin-top:1px}
 .dates{gap:10px}
-.egrp{border-radius:14px;background:rgba(255,255,255,.7);box-shadow:var(--ring),var(--hi),0 6px 18px -14px rgba(18,20,30,.3);overflow:hidden}
-.egrp>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer}
+.egrp>summary{list-style:none;cursor:pointer}
 .egrp>summary::-webkit-details-marker{display:none}
-.egrp>summary .chev{width:20px;height:20px;transition:transform .3s var(--ease),color .2s}
+.egrp>summary:hover{transform:translateY(-1px)}
+.egrp>summary b{font-weight:700}
+.egrp>summary .chev{width:20px;height:20px;flex:none;color:#9a9da5;transition:transform .3s var(--ease),color .2s}
 .egrp[open]>summary .chev{transform:rotate(90deg);color:var(--red)}
-.egrp>summary b{font:700 15px "Montserrat",sans-serif}
-.egrp .egb{display:grid;gap:8px;padding:0 12px 12px}
-.egrp .date{background:rgba(255,255,255,.95);box-shadow:none;border:1px solid #e6e8ec}
+.egrp .egd{width:auto;min-width:48px;padding:4px 8px;white-space:nowrap}
+.egrp .egb{display:grid;gap:8px;padding:8px 0 4px 18px}
+.egrp .egb .date{background:rgba(255,255,255,.95);box-shadow:none;border:1px solid #e6e8ec}
 .egrp.past{opacity:.55}
 </style>
 </head>
@@ -1089,12 +1090,14 @@ function render(){
   const groups=[...gmap.entries()];
   if(openG===null){const nx=groups.find(([,r])=>r.some(o=>o.d>=t0()));openG=new Set(nx?[nx[0]]:[]);}
   const mes=d=>MN[d.getMonth()].toLowerCase();
-  const rng=r=>{const a=r[0].d,b=r[r.length-1].d;return a.getTime()===b.getTime()?a.getDate()+' '+mes(a):a.getMonth()===b.getMonth()?a.getDate()+'–'+b.getDate()+' '+mes(a):a.getDate()+' '+mes(a)+' – '+b.getDate()+' '+mes(b);};
+  const wdn=d=>{const w=d.toLocaleDateString('es-MX',{weekday:'long'});return w.charAt(0).toUpperCase()+w.slice(1);};
+  const dd=r=>{const a=r[0].d,b=r[r.length-1].d;return a.getMonth()===b.getMonth()&&a.getDate()!==b.getDate()?a.getDate()+'–'+b.getDate():a.getDate();};
+  const wr=r=>r.length>1?wdn(r[0].d)+' a '+wdn(r[r.length-1].d):wdn(r[0].d);
   $('#dates').innerHTML=groups.map(([k,r])=>{
     const nxt=r.find(o=>o.d>=t0()),lug=[...new Set(r.map(o=>o.x.lugar).filter(Boolean))].join(' / ');
     const rows=r.map(({x,d})=>{const wd=d.toLocaleDateString('es-MX',{weekday:'long'}),sub=x.titulo.includes(' · ')?x.titulo.split(' · ').slice(1).join(' · '):x.titulo;
       return `<div class="date ${d<t0()?'past admin-only':''}"><div class="dd">${d.getDate()}<small>${MN[d.getMonth()]}</small></div><div class="dtx"><b>${esc(sub)}</b><span class="dlug">${wd.charAt(0).toUpperCase()+wd.slice(1)}${x.lugar?' · '+esc(x.lugar):''}</span></div><span class="when">${left(d)}</span><button type="button" class="dx admin-only" onclick="delDate('${x.id}')" aria-label="Quitar fecha" title="Quitar fecha"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`;}).join('');
-    return `<details class="egrp ${nxt?'':'past admin-only'}" data-k="${esc(k)}" ${openG.has(k)?'open':''}><summary>${chev}<div class="dtx"><b>${esc(k)}</b><span class="dlug">${rng(r)}${lug?' · '+esc(lug):''}</span></div><span class="when">${nxt?left(nxt.d):'Terminada'}</span></summary><div class="egb">${rows}</div></details>`;}).join('')||'<p class="kick">Sin fechas por ahora</p>';
+    return `<details class="egrp ${nxt?'':'past admin-only'}" data-k="${esc(k)}" ${openG.has(k)?'open':''}><summary class="date"><div class="dd egd">${dd(r)}<small>${MN[r[0].d.getMonth()]}</small></div><div class="dtx"><b>${esc(k)}</b><span class="dlug">${wr(r)}${lug?' · '+esc(lug):''}</span></div><span class="when">${nxt?left(nxt.d):'Terminada'}</span>${chev}</summary><div class="egb">${rows}</div></details>`;}).join('')||'<p class="kick">Sin fechas por ahora</p>';
   $('#nEntrega').innerHTML=entregas().map(e=>`<option>${e}</option>`).join('');
   filters($('#noteFilter'),noteF,v=>noteF=v); filters($('#photoFilter'),photoF,v=>photoF=v);
   $('#noteList').innerHTML=qn.filter(n=>noteF==='all'||String(n.entrega)===noteF).sort((a,b)=>b.id-a.id).map(noteRow).join('')||'<p class="kick">Aún no hay notas</p>';
