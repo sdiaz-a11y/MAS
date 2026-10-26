@@ -83,5 +83,5 @@ grant  execute on function public.set_group_code(text) to authenticated;
 -- ---------- el admin inicial (el usuario del paso 1) ----------
 insert into public.profiles(id, nombre, email, rol, estado)
 select id, 'Samuel Díaz', lower(email), 'admin', 'aprobado' from auth.users where lower(email) = 'sdiaz@zigma3.com'
-on conflict (id) do update set rol = 'admin', estado = 'aprobado';
+on conflict (id) do update set rol = 'admin', estado = 'aprobado', nombre = excluded.nombre;
 
