@@ -704,6 +704,16 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 @media(max-width:720px){.dform{grid-template-columns:1fr}}
 .dtx{flex:1;min-width:0}.dtx b{display:block}
 .dlug{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+.dates{gap:10px}
+.egrp{border-radius:14px;background:rgba(255,255,255,.7);box-shadow:var(--ring),var(--hi),0 6px 18px -14px rgba(18,20,30,.3);overflow:hidden}
+.egrp>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer}
+.egrp>summary::-webkit-details-marker{display:none}
+.egrp>summary .chev{width:20px;height:20px;transition:transform .3s var(--ease),color .2s}
+.egrp[open]>summary .chev{transform:rotate(90deg);color:var(--red)}
+.egrp>summary b{font:700 15px "Montserrat",sans-serif}
+.egrp .egb{display:grid;gap:8px;padding:0 12px 12px}
+.egrp .date{background:rgba(255,255,255,.95);box-shadow:none;border:1px solid #e6e8ec}
+.egrp.past{opacity:.55}
 </style>
 </head>
 <body>
@@ -738,7 +748,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
         <h2 class="sec caps"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>Fechas importantes</h2>
         <form class="panel admin-only dform" id="dateForm">
           <div><label for="dFecha">Fecha</label><input class="f" type="date" id="dFecha" required></div>
-          <div class="dgrow"><label for="dTexto">Evento</label><input class="f" id="dTexto" required maxlength="90" placeholder="Ej. Entrega 6 · Sistemas y equipo" autocomplete="off"></div>
+          <div class="dgrow"><label for="dTexto">Evento</label><input class="f" id="dTexto" required maxlength="90" placeholder="Ej. Sexta entrega · Día 1" autocomplete="off"></div>
           <div class="dgrow"><label for="dLugar">Lugar</label><input class="f" id="dLugar" maxlength="60" placeholder="Ej. Expo GDL" autocomplete="off"></div>
           <button class="btn red" type="submit">Agregar fecha</button>
         </form>
@@ -1073,7 +1083,18 @@ function render(){
   const t0=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate());};
   const dateOf=x=>{if(x.f)return new Date(x.f+'T00:00');const d=new Date(t0().getFullYear(),MES[x.m],x.d);if(d<t0())d.setFullYear(d.getFullYear()+1);return d;};
   const left=d=>{const k=Math.round((d-t0())/864e5);return k<0?'Pasó hace '+(-k)+(k===-1?' día':' días'):k===0?'Hoy':k===1?'Mañana':'En '+k+' días';};
-  $('#dates').innerHTML=fechas.map(x=>({x,d:new Date(x.fecha+'T00:00')})).sort((a,b)=>a.d-b.d).map(({x,d})=>{const wd=d.toLocaleDateString('es-MX',{weekday:'long'});return `<div class="date ${d<t0()?'past admin-only':''}"><div class="dd">${d.getDate()}<small>${MN[d.getMonth()]}</small></div><div class="dtx"><b>${esc(x.titulo)}</b><span class="dlug">${wd.charAt(0).toUpperCase()+wd.slice(1)}${x.lugar?' · '+esc(x.lugar):''}</span></div><span class="when">${left(d)}</span><button type="button" class="dx admin-only" onclick="delDate('${x.id}')" aria-label="Quitar fecha" title="Quitar fecha"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`;}).join('')||'<p class="kick">Sin fechas por ahora</p>';
+  /* fechas agrupadas por entrega: cada una es un menú desplegable (por defecto abierta la próxima) */
+  const gmap=new Map();
+  fechas.map(x=>({x,d:new Date(x.fecha+'T00:00')})).sort((a,b)=>a.d-b.d).forEach(o=>{const k=o.x.titulo.split(' · ')[0];if(!gmap.has(k))gmap.set(k,[]);gmap.get(k).push(o);});
+  const groups=[...gmap.entries()];
+  if(openG===null){const nx=groups.find(([,r])=>r.some(o=>o.d>=t0()));openG=new Set(nx?[nx[0]]:[]);}
+  const mes=d=>MN[d.getMonth()].toLowerCase();
+  const rng=r=>{const a=r[0].d,b=r[r.length-1].d;return a.getTime()===b.getTime()?a.getDate()+' '+mes(a):a.getMonth()===b.getMonth()?a.getDate()+'–'+b.getDate()+' '+mes(a):a.getDate()+' '+mes(a)+' – '+b.getDate()+' '+mes(b);};
+  $('#dates').innerHTML=groups.map(([k,r])=>{
+    const nxt=r.find(o=>o.d>=t0()),lug=[...new Set(r.map(o=>o.x.lugar).filter(Boolean))].join(' / ');
+    const rows=r.map(({x,d})=>{const wd=d.toLocaleDateString('es-MX',{weekday:'long'}),sub=x.titulo.includes(' · ')?x.titulo.split(' · ').slice(1).join(' · '):x.titulo;
+      return `<div class="date ${d<t0()?'past admin-only':''}"><div class="dd">${d.getDate()}<small>${MN[d.getMonth()]}</small></div><div class="dtx"><b>${esc(sub)}</b><span class="dlug">${wd.charAt(0).toUpperCase()+wd.slice(1)}${x.lugar?' · '+esc(x.lugar):''}</span></div><span class="when">${left(d)}</span><button type="button" class="dx admin-only" onclick="delDate('${x.id}')" aria-label="Quitar fecha" title="Quitar fecha"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`;}).join('');
+    return `<details class="egrp ${nxt?'':'past admin-only'}" data-k="${esc(k)}" ${openG.has(k)?'open':''}><summary>${chev}<div class="dtx"><b>${esc(k)}</b><span class="dlug">${rng(r)}${lug?' · '+esc(lug):''}</span></div><span class="when">${nxt?left(nxt.d):'Terminada'}</span></summary><div class="egb">${rows}</div></details>`;}).join('').join('')||'<p class="kick">Sin fechas por ahora</p>';
   $('#nEntrega').innerHTML=entregas().map(e=>`<option>${e}</option>`).join('');
   filters($('#noteFilter'),noteF,v=>noteF=v); filters($('#photoFilter'),photoF,v=>photoF=v);
   $('#noteList').innerHTML=qn.filter(n=>noteF==='all'||String(n.entrega)===noteF).sort((a,b)=>b.id-a.id).map(noteRow).join('')||'<p class="kick">Aún no hay notas</p>';
@@ -1143,7 +1164,8 @@ $('#noteForm').onsubmit=e=>{e.preventDefault();
   db.notes.push({id:Date.now(),gen:cur(),autor:(ME?ME.nombre:''),fecha:new Date().toISOString().slice(0,10),...v});
   store.save(db);noteReset();render();toast('Nota publicada');};
 /* fechas importantes: viven en Supabase (tabla fechas), las ven todos los miembros */
-let fechas=[];
+let fechas=[],openG=null;   /* openG: entregas desplegadas (se conserva al volver a pintar) */
+$('#dates').addEventListener('toggle',e=>{const k=e.target.dataset&&e.target.dataset.k;if(k===undefined||!openG)return;e.target.open?openG.add(k):openG.delete(k);},true);
 async function loadFechas(){const {data,error}=await sb.from('fechas').select('*').order('fecha');if(error){toast('No se pudieron cargar las fechas');return;}fechas=data;render();}
 $('#dateForm').onsubmit=async e=>{e.preventDefault();
   const {data,error}=await sb.from('fechas').insert({fecha:$('#dFecha').value,titulo:$('#dTexto').value.trim(),lugar:$('#dLugar').value.trim()}).select().single();
