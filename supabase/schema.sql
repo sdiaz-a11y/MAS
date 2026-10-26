@@ -51,9 +51,12 @@ create or replace function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path = public, extensions as $$
 declare h text; c text := coalesce(new.raw_user_meta_data->>'codigo', '');
 begin
-  select value into h from public.app_secrets where key = 'group_code';
-  if c = '' or h is null or extensions.crypt(c, h) <> h then
-    raise exception 'codigo_invalido';
+  -- modo arranque: con la fila 'bootstrap' en app_secrets se permite crear el primer admin desde el dashboard
+  if not exists (select 1 from public.app_secrets where key = 'bootstrap') then
+    select value into h from public.app_secrets where key = 'group_code';
+    if c = '' or h is null or extensions.crypt(c, h) <> h then
+      raise exception 'codigo_invalido';
+    end if;
   end if;
   insert into public.profiles(id, nombre, email, tel, foto)
   values (new.id,
@@ -61,6 +64,8 @@ begin
           lower(new.email),
           coalesce(new.raw_user_meta_data->>'tel', ''),
           coalesce(new.raw_user_meta_data->>'foto', ''));
+  -- el acceso lo aprueba un admin en el portal: el correo se da por confirmado para que nadie quede bloqueado
+  update auth.users set email_confirmed_at = coalesce(email_confirmed_at, now()) where id = new.id;
   return new;
 end $$;
 revoke execute on function public.handle_new_user() from public, anon, authenticated;
