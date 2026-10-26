@@ -700,6 +700,10 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 .shell{height:100dvh}
 .lk-form input[type=text],.lk-form input[type=email],.lk-form input[type=tel],.lk-form input[type=password],input.f,select,textarea{font-size:16px}
 @media(max-width:720px){.top{padding-top:calc(8px + env(safe-area-inset-top))}}
+.dform{grid-template-columns:170px 1.4fr 1fr auto}
+@media(max-width:720px){.dform{grid-template-columns:1fr}}
+.dtx{flex:1;min-width:0}.dtx b{display:block}
+.dlug{display:block;font-size:12px;color:var(--muted);margin-top:1px}
 </style>
 </head>
 <body>
@@ -735,6 +739,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
         <form class="panel admin-only dform" id="dateForm">
           <div><label for="dFecha">Fecha</label><input class="f" type="date" id="dFecha" required></div>
           <div class="dgrow"><label for="dTexto">Evento</label><input class="f" id="dTexto" required maxlength="90" placeholder="Ej. Entrega 6 · Sistemas y equipo" autocomplete="off"></div>
+          <div class="dgrow"><label for="dLugar">Lugar</label><input class="f" id="dLugar" maxlength="60" placeholder="Ej. Expo GDL" autocomplete="off"></div>
           <button class="btn red" type="submit">Agregar fecha</button>
         </form>
         <div class="dates" id="dates"></div>
@@ -1021,7 +1026,7 @@ function seed(){
     currentGen:4,
     gens:[{n:4,year:2026}],
     members:['Mariana R.','Luis C.','Ana P.','Carlos M.','Sofía T.','Jorge V.'],
-    dates:[{d:7,m:'NOV',t:'Entrega 5 · Ventas y ofertas'},{d:21,m:'NOV',t:'Entrega 6 · Sistemas y equipo'}],
+    dates:[],
     notes:[
       {id:1,gen:4,entrega:4,titulo:'Cómo fijar precios con confianza',autor:'Mariana R.',fecha:'2026-10-10',texto:'• El precio comunica posicionamiento.\n• Probar un aumento del 10% en clientes nuevos.\n• Tarea: revisar márgenes antes de la próxima entrega.'},
       {id:2,gen:4,entrega:3,titulo:'Sistemas para delegar',autor:'Luis C.',fecha:'2026-09-26',texto:'Documentar el proceso primero, delegar después. Checklist semanal de 3 puntos y reunión de 15 minutos con el equipo.'},
@@ -1068,7 +1073,7 @@ function render(){
   const t0=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate());};
   const dateOf=x=>{if(x.f)return new Date(x.f+'T00:00');const d=new Date(t0().getFullYear(),MES[x.m],x.d);if(d<t0())d.setFullYear(d.getFullYear()+1);return d;};
   const left=d=>{const k=Math.round((d-t0())/864e5);return k<0?'Pasó hace '+(-k)+(k===-1?' día':' días'):k===0?'Hoy':k===1?'Mañana':'En '+k+' días';};
-  $('#dates').innerHTML=db.dates.map((x,i)=>({x,i,d:dateOf(x)})).sort((a,b)=>a.d-b.d).map(({x,i,d})=>`<div class="date ${d<t0()?'past admin-only':''}"><div class="dd">${d.getDate()}<small>${MN[d.getMonth()]}</small></div><b>${esc(x.t)}</b><span class="when">${left(d)}</span><button type="button" class="dx admin-only" onclick="delDate(${i})" aria-label="Quitar fecha" title="Quitar fecha"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`).join('')||'<p class="kick">Sin fechas por ahora</p>';
+  $('#dates').innerHTML=fechas.map(x=>({x,d:new Date(x.fecha+'T00:00')})).sort((a,b)=>a.d-b.d).map(({x,d})=>{const wd=d.toLocaleDateString('es-MX',{weekday:'long'});return `<div class="date ${d<t0()?'past admin-only':''}"><div class="dd">${d.getDate()}<small>${MN[d.getMonth()]}</small></div><div class="dtx"><b>${esc(x.titulo)}</b><span class="dlug">${wd.charAt(0).toUpperCase()+wd.slice(1)}${x.lugar?' · '+esc(x.lugar):''}</span></div><span class="when">${left(d)}</span><button type="button" class="dx admin-only" onclick="delDate('${x.id}')" aria-label="Quitar fecha" title="Quitar fecha"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`;}).join('')||'<p class="kick">Sin fechas por ahora</p>';
   $('#nEntrega').innerHTML=entregas().map(e=>`<option>${e}</option>`).join('');
   filters($('#noteFilter'),noteF,v=>noteF=v); filters($('#photoFilter'),photoF,v=>photoF=v);
   $('#noteList').innerHTML=qn.filter(n=>noteF==='all'||String(n.entrega)===noteF).sort((a,b)=>b.id-a.id).map(noteRow).join('')||'<p class="kick">Aún no hay notas</p>';
@@ -1137,8 +1142,14 @@ $('#noteForm').onsubmit=e=>{e.preventDefault();
   if(editNote){Object.assign(db.notes.find(x=>x.id===editNote),v);store.save(db);noteReset();render();toast('Cambios guardados');return;}
   db.notes.push({id:Date.now(),gen:cur(),autor:(ME?ME.nombre:''),fecha:new Date().toISOString().slice(0,10),...v});
   store.save(db);noteReset();render();toast('Nota publicada');};
-$('#dateForm').onsubmit=e=>{e.preventDefault();db.dates.push({f:$('#dFecha').value,t:$('#dTexto').value.trim()});store.save(db);$('#dTexto').value='';render();toast('Fecha agregada');};
-function delDate(i){db.dates.splice(i,1);store.save(db);render();toast('Fecha quitada');}
+/* fechas importantes: viven en Supabase (tabla fechas), las ven todos los miembros */
+let fechas=[];
+async function loadFechas(){const {data,error}=await sb.from('fechas').select('*').order('fecha');if(error){toast('No se pudieron cargar las fechas');return;}fechas=data;render();}
+$('#dateForm').onsubmit=async e=>{e.preventDefault();
+  const {data,error}=await sb.from('fechas').insert({fecha:$('#dFecha').value,titulo:$('#dTexto').value.trim(),lugar:$('#dLugar').value.trim()}).select().single();
+  if(error){toast('No se pudo agregar la fecha');return;}
+  fechas.push(data);$('#dTexto').value='';$('#dLugar').value='';render();toast('Fecha agregada');};
+async function delDate(id){const {error}=await sb.from('fechas').delete().eq('id',id);if(error){toast('No se pudo quitar la fecha');return;}fechas=fechas.filter(x=>x.id!==id);render();toast('Fecha quitada');}
 /* ---- subir fotos (solo admin) con los nombres de quienes salen ---- */
 let phItems=[],phEdit=null,phFocus=null;
 const parseNames=t=>t.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean);
@@ -1759,7 +1770,7 @@ $('#pwM').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
 });};
 
 if(window.__must){showLock();setRole('miembro');showMust();}
-else if(ME){hideLock();initUserUI();if(ME.rol==='admin')loadUsers();}
+else if(ME){hideLock();initUserUI();loadFechas();if(ME.rol==='admin')loadUsers();}
 else{showLock();setRole('miembro');}
 
 /* reloj */
