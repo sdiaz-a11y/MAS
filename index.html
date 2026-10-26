@@ -1649,7 +1649,7 @@ function showMust(){document.querySelector('.lk-tabs').hidden=true;$('#lkLogin')
 $('#lkLogin').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
   const msg=$('#lkMsg');
   const {data,error}=await sb.auth.signInWithPassword({email:$('#lkEmail').value.trim().toLowerCase(),password:$('#lkPass').value});
-  if(error){say(msg,error.status===429?'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.':'Correo o contraseña incorrectos.','err');shake();return;}
+  if(error){say(msg,error.status===429?'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.':/not confirmed/i.test(error.message)?'Tu correo aún no está confirmado. Pide a un admin que lo active.':'Correo o contraseña incorrectos.','err');shake();return;}
   const {data:p}=await sb.from('profiles').select('estado,must_change').eq('id',data.user.id).maybeSingle();
   if(!p||p.estado!=='aprobado'){await sb.auth.signOut();say(msg,p&&p.estado==='rechazado'?REJ_MSG:PEND_MSG,'info');return;}
   if(p.must_change){showMust();return;}   /* entró con la contraseña temporal: debe crear la suya */
