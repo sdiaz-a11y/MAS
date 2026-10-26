@@ -871,6 +871,8 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
         <h1>Solicitudes de acceso</h1><div class="kick">Solo los admin ven esta sección</div>
         <h2 class="sec caps">Pendientes <span class="cnt" id="reqCnt">0</span></h2>
         <div id="reqList"></div>
+        <h2 class="sec caps">Contraseñas por restablecer <span class="cnt" id="pwReqCnt">0</span></h2>
+        <div id="pwReqList"></div>
         <h2 class="sec caps">Miembros y admins</h2>
         <div id="memList"></div>
         <h2 class="sec caps">Rechazadas</h2>
@@ -952,7 +954,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 
     <form class="lk-form" id="lkNew" hidden novalidate>
       <b style="font:700 17px 'Montserrat',sans-serif">Crea tu contraseña nueva</b>
-      <p style="color:#b7bac2;font-size:14px;line-height:1.5;margin:-4px 0 2px">Elige tu contraseña nueva para volver a entrar.</p>
+      <p style="color:#b7bac2;font-size:14px;line-height:1.5;margin:-4px 0 2px">Un admin te asignó una contraseña temporal. Elige una personal para seguir.</p>
       <label>Contraseña nueva<span class="lk-pw"><input type="password" id="nwPass" required autocomplete="new-password" placeholder="Mínimo 8 caracteres"><button type="button" class="lk-eye" aria-label="Mostrar contraseña"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
       <label>Repite la contraseña<input type="password" id="nwPass2" required autocomplete="new-password"></label>
       <div class="lk-msg" id="lkNewMsg" role="alert"></div>
@@ -979,13 +981,12 @@ let ME=null,deferredInstall=null;
 addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e;});
 addEventListener("appinstalled",()=>{deferredInstall=null;});
 if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol))addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
-sb.auth.onAuthStateChange(ev=>{if(ev==="PASSWORD_RECOVERY")window.__recovery=true;});
 (async()=>{
   try{
     const {data:{session}}=await sb.auth.getSession();
     if(session){
       const {data:p}=await sb.from("profiles").select("*").eq("id",session.user.id).maybeSingle();
-      if(p&&p.estado==="aprobado")ME=p;else if(!window.__recovery)await sb.auth.signOut();
+      if(p&&p.estado==="aprobado"){if(p.must_change)window.__must=true;else ME=p;}else await sb.auth.signOut();
     }
   }catch(e){console.error(e);}
   const s=document.createElement("script");s.textContent=document.getElementById("app").textContent;document.body.appendChild(s);
@@ -1608,28 +1609,32 @@ const shake=()=>{const c=lock.querySelector('.lk-card');c.classList.remove('shak
 const withBtn=async(form,fn)=>{const b=form.querySelector('button[type=submit]');b.disabled=true;try{await fn();}finally{b.disabled=false;}};
 const PEND_MSG='Tu solicitud sigue en revisión. Un admin la aprobará pronto.',REJ_MSG='Tu solicitud no fue aprobada. Escribe a soporte si crees que es un error.';
 
+function showMust(){document.querySelector('.lk-tabs').hidden=true;$('#lkLogin').hidden=true;$('#lkReq').hidden=true;$('#lkNew').hidden=false;$('#nwPass').focus();}
 $('#lkLogin').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
   const msg=$('#lkMsg');
   const {data,error}=await sb.auth.signInWithPassword({email:$('#lkEmail').value.trim().toLowerCase(),password:$('#lkPass').value});
   if(error){say(msg,error.status===429?'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.':'Correo o contraseña incorrectos.','err');shake();return;}
-  const {data:p}=await sb.from('profiles').select('estado').eq('id',data.user.id).maybeSingle();
+  const {data:p}=await sb.from('profiles').select('estado,must_change').eq('id',data.user.id).maybeSingle();
   if(!p||p.estado!=='aprobado'){await sb.auth.signOut();say(msg,p&&p.estado==='rechazado'?REJ_MSG:PEND_MSG,'info');return;}
+  if(p.must_change){showMust();return;}   /* entró con la contraseña temporal: debe crear la suya */
   location.reload();
 });};
+/* "¿Olvidaste tu contraseña?": avisa a los admin dentro del portal; ellos asignan una temporal */
 $('#lkForgot').onclick=async()=>{
   const msg=$('#lkMsg'),em=$('#lkEmail').value.trim().toLowerCase();
   if(!em){say(msg,'Escribe tu correo arriba y vuelve a tocar el enlace.','err');return;}
-  const {error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});
-  say(msg,error?'No se pudo enviar el correo. Inténtalo más tarde.':'Si ese correo tiene cuenta, te enviamos un enlace para crear una contraseña nueva.',error?'err':'info');
+  const {error}=await sb.rpc('request_password_reset',{p_email:em});
+  say(msg,error?'No se pudo enviar el aviso. Inténtalo más tarde.':'Listo. Si ese correo es de un miembro, un admin recibió tu aviso y te dará una contraseña temporal.',error?'err':'info');
 };
-/* contraseña nueva tras abrir el enlace de recuperación del correo */
+/* contraseña personal tras entrar con la temporal */
 $('#lkNew').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
   const m=$('#lkNewMsg'),a=$('#nwPass').value,b=$('#nwPass2').value;
   if(a.length<8){say(m,'Escribe al menos 8 caracteres.','err');return;}
   if(a!==b){say(m,'Las contraseñas no coinciden.','err');return;}
   const {error}=await sb.auth.updateUser({password:a});
-  if(error){say(m,'No se pudo guardar. El enlace pudo haber caducado: pide uno nuevo.','err');return;}
-  location.href=location.pathname;
+  if(error){say(m,/different|same/i.test(error.message)?'Elige una contraseña distinta a la temporal.':'No se pudo guardar. Inténtalo de nuevo.','err');return;}
+  await sb.rpc('clear_must_change');
+  location.reload();
 });};
 let reqPhoto='';
 $('#lkPhoto').onchange=async e=>{const f=e.target.files[0];if(!f)return;const url=await shrink(f,360);if(!url){say($('#lkReqMsg'),'No se pudo leer esa imagen. Prueba con otra.','err');return;}
@@ -1660,32 +1665,55 @@ $('#lkReq').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
 });};
 
 /* ---------- solicitudes (solo admin) ---------- */
-let users=[];
+let users=[],reqs=[],resetEdit=null,resetShown=null;
+const genTemp=()=>{const c='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789',a=new Uint32Array(9);crypto.getRandomValues(a);return[...a].map(n=>c[n%c.length]).join('');};
 async function loadUsers(){
-  const {data,error}=await sb.from('profiles').select('*').order('creado');
-  if(error){toast('No se pudieron cargar los usuarios');return;}
-  users=data.map(u=>({...u,creado:Date.parse(u.creado)}));reqRender();
+  const [u,r]=await Promise.all([sb.from('profiles').select('*').order('creado'),sb.from('password_requests').select('*').eq('atendida',false).order('creado')]);
+  if(u.error){toast('No se pudieron cargar los usuarios');return;}
+  users=u.data.map(x=>({...x,creado:Date.parse(x.creado)}));
+  reqs=r.error?[]:r.data.map(x=>({...x,creado:Date.parse(x.creado)}));
+  reqRender();
 }
 function reqRender(){
   const pend=users.filter(u=>u.estado==='pendiente').sort((a,b)=>a.creado-b.creado),act=users.filter(u=>u.estado==='aprobado'),rej=users.filter(u=>u.estado==='rechazado');
-  $('#reqCnt').textContent=pend.length;
-  const b=document.querySelector('.tab[data-tab="solicitudes"]');if(b){let g=b.querySelector('.bdg');if(!g){g=document.createElement('i');g.className='bdg';b.appendChild(g);}g.textContent=pend.length;g.hidden=!pend.length;}
-  const card=(u,acts)=>`<div class="ucard" data-id="${esc(u.id)}">${avatarHTML(u,'big')}<div class="ui"><b>${esc(u.nombre)}${u.rol==='admin'?' <span class="rolebadge">Admin</span>':''}</b><span>${esc(u.email)}</span><span>${u.tel?esc(u.tel):'Sin teléfono'}${u.estado==='pendiente'?' · solicitó '+ago(u.creado):''}</span></div><div class="ua">${acts}</div></div>`;
-  $('#reqList').innerHTML=pend.map(u=>card(u,'<button type="button" class="btn red" data-r="ok">Aprobar</button><button type="button" class="btn" data-r="no">Rechazar</button>')).join('')||'<p class="kick">No hay solicitudes pendientes</p>';
-  $('#memList').innerHTML=act.map(u=>card(u,u.id===ME.id?'<span class="kick" style="margin:0">Tú</span>':'<button type="button" class="btn" data-r="pwnew">Enviar enlace de contraseña</button>'+`<button type="button" class="btn" data-r="${u.rol==='admin'?'demote':'promote'}">${u.rol==='admin'?'Quitar admin':'Hacer admin'}</button><button type="button" class="btn" data-r="remove">Quitar acceso</button>`)).join('');
+  const pwr=reqs.map(q=>({q,u:users.find(x=>x.id===q.user_id)})).filter(x=>x.u&&x.u.estado==='aprobado');
+  const hasReq=id=>pwr.some(x=>x.u.id===id);
+  $('#reqCnt').textContent=pend.length;$('#pwReqCnt').textContent=pwr.length;
+  const total=pend.length+pwr.length,b=document.querySelector('.tab[data-tab="solicitudes"]');
+  if(b){let g=b.querySelector('.bdg');if(!g){g=document.createElement('i');g.className='bdg';b.appendChild(g);}g.textContent=total;g.hidden=!total;}
+  const card=(u,acts,note,showX)=>{const f=esc(u.nombre.split(' ')[0]);let x='';
+    if(showX&&resetEdit===u.id)x=`<div class="ux"><label for="rsIn">Contraseña temporal para ${f}</label><div class="rsrow"><input class="f" id="rsIn" value="${genTemp()}" autocomplete="off"><button type="button" class="btn red" data-r="pwok">Asignar</button><button type="button" class="btn" data-r="pwcancel">Cancelar</button></div><small>Puedes cambiarla (mín. 8). ${f} tendrá que crear una personal al entrar.</small></div>`;
+    else if(showX&&resetShown&&resetShown.id===u.id)x=`<div class="ux tmp"><span>Contraseña temporal</span><code>${esc(resetShown.pw)}</code><button type="button" class="btn" data-r="pwcopy">Copiar</button><small>Compártela con ${f}. Solo se muestra ahora; al entrar tendrá que crear la suya.</small></div>`;
+    return `<div class="ucard" data-id="${esc(u.id)}">${avatarHTML(u,'big')}<div class="ui"><b>${esc(u.nombre)}${u.rol==='admin'?' <span class="rolebadge">Admin</span>':''}${u.must_change?' <span class="rolebadge" style="background:#eceef2;color:#40434a">Contraseña temporal</span>':''}</b><span>${esc(u.email)}</span><span>${u.tel?esc(u.tel):'Sin teléfono'}${note||''}</span></div><div class="ua">${acts}</div>${x}</div>`;};
+  $('#reqList').innerHTML=pend.map(u=>card(u,'<button type="button" class="btn red" data-r="ok">Aprobar</button><button type="button" class="btn" data-r="no">Rechazar</button>',' · solicitó '+ago(u.creado))).join('')||'<p class="kick">No hay solicitudes pendientes</p>';
+  $('#pwReqList').innerHTML=pwr.map(({q,u})=>card(u,'<button type="button" class="btn red" data-r="pwnew">Asignar contraseña</button><button type="button" class="btn" data-r="pwdismiss">Descartar</button>',' · avisó '+ago(q.creado),true)).join('')||'<p class="kick">Nadie ha pedido una contraseña nueva</p>';
+  $('#memList').innerHTML=act.map(u=>card(u,u.id===ME.id?'<span class="kick" style="margin:0">Tú</span>':(u.rol==='admin'?'':'<button type="button" class="btn" data-r="pwnew">Nueva contraseña</button>')+`<button type="button" class="btn" data-r="${u.rol==='admin'?'demote':'promote'}">${u.rol==='admin'?'Quitar admin':'Hacer admin'}</button><button type="button" class="btn" data-r="remove">Quitar acceso</button>`,'',!hasReq(u.id))).join('');
   $('#rejList').innerHTML=rej.map(u=>card(u,'<button type="button" class="btn" data-r="again">Reconsiderar</button>')).join('')||'<p class="kick">Ninguna</p>';
 }
+$('#tabs').addEventListener('click',()=>{if(activeTab!=='solicitudes'){resetEdit=null;resetShown=null;}});
 $('#v-solicitudes').addEventListener('click',async e=>{
   const b=e.target.closest('[data-r]');if(!b)return;const u=users.find(x=>x.id===b.closest('.ucard').dataset.id);if(!u)return;
-  const a=b.dataset.r,first=esc(u.nombre.split(' ')[0]);let patch,ok;
-  if(a==='pwnew'){
-    const {error}=await sb.auth.resetPasswordForEmail(u.email,{redirectTo:location.origin+location.pathname});
-    toast(error?'No se pudo enviar el correo':'Enlace enviado a '+u.email);return;
+  const a=b.dataset.r,first=u.nombre.split(' ')[0];let patch,ok;
+  if(a==='pwcopy'){navigator.clipboard.writeText(resetShown.pw).then(()=>toast('Contraseña copiada'),()=>toast('Selecciona la contraseña y cópiala'));return;}
+  if(a!=='pwok')resetShown=null;
+  if(a==='pwnew'){resetEdit=u.id;reqRender();return;}
+  if(a==='pwcancel'){resetEdit=null;reqRender();return;}
+  if(a==='pwok'){
+    const v=($('#rsIn').value||'').trim();if(v.length<8){toast('La contraseña temporal debe tener al menos 8 caracteres');return;}
+    b.disabled=true;
+    const {error}=await sb.rpc('admin_set_password',{p_user:u.id,p_pass:v});
+    if(error){b.disabled=false;toast('No se pudo asignar la contraseña');return;}
+    u.must_change=true;reqs=reqs.filter(q=>q.user_id!==u.id);resetShown={id:u.id,pw:v};resetEdit=null;reqRender();toast('Contraseña asignada a '+first);return;
   }
-  if(a==='ok'){patch={estado:'aprobado'};ok=u.nombre.split(' ')[0]+' ya puede entrar';}
+  if(a==='pwdismiss'){
+    const {error}=await sb.from('password_requests').update({atendida:true}).eq('user_id',u.id).eq('atendida',false);
+    if(error){toast('No se pudo descartar');return;}
+    reqs=reqs.filter(q=>q.user_id!==u.id);reqRender();toast('Aviso descartado');return;
+  }
+  if(a==='ok'){patch={estado:'aprobado'};ok=first+' ya puede entrar';}
   else if(a==='no'){patch={estado:'rechazado'};ok='Solicitud rechazada';}
   else if(a==='again'){patch={estado:'pendiente'};ok='Solicitud reabierta';}
-  else if(a==='promote'){if(!confirm('¿Hacer admin a '+u.nombre+'?'))return;patch={rol:'admin'};ok=u.nombre.split(' ')[0]+' ahora es admin';}
+  else if(a==='promote'){if(!confirm('¿Hacer admin a '+u.nombre+'?'))return;patch={rol:'admin'};ok=first+' ahora es admin';}
   else if(a==='demote'){if(users.filter(x=>x.rol==='admin'&&x.estado==='aprobado').length<2){toast('Debe quedar al menos un admin');return;}patch={rol:'miembro'};ok='Admin quitado';}
   else if(a==='remove'){if(!confirm('¿Quitar el acceso a '+u.nombre+'?'))return;patch={estado:'rechazado'};ok='Acceso quitado';}
   else return;
@@ -1730,7 +1758,7 @@ $('#pwM').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
   i.value='';toast('Código del grupo actualizado');
 });};
 
-if(window.__recovery){showLock();setRole('miembro');document.querySelector('.lk-tabs').hidden=true;$('#lkLogin').hidden=true;$('#lkNew').hidden=false;$('#nwPass').focus();}
+if(window.__must){showLock();setRole('miembro');showMust();}
 else if(ME){hideLock();initUserUI();if(ME.rol==='admin')loadUsers();}
 else{showLock();setRole('miembro');}
 
