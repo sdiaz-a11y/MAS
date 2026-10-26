@@ -1,13 +1,13 @@
 {
-  "name": "MAS · Portal de Miembros",
+  "name": "MAS Â· Portal de Miembros",
   "short_name": "MAS",
-  "description": "Portal de miembros del Mastermind de Acción Sinergético",
+  "description": "Portal de miembros del Mastermind de AcciÃ³n SinergÃ©tico",
   "lang": "es",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0e0e0f",
+  "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
