@@ -772,7 +772,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
         </div>
         <h2 class="sec caps"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg>Entregas</h2>
         <div class="rows" id="homeEntregas"></div>
-        <h2 class="sec caps" id="noteListTitle"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/></svg>Notas</h2>
+        <h2 class="sec caps" id="noteListTitle"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/></svg>Notas<button type="button" class="btn" id="dlOpen"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Descargar</button></h2>
         <div class="filters" id="noteFilter"></div>
         <div class="rows" id="noteList"></div>
       </section>
@@ -830,7 +830,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
             <button type="button" id="hDown" title="Hoja siguiente" aria-label="Hoja siguiente"><svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
           </div>
         </div>
-        <div class="apfoot"><span><span id="apSaved">Guardado en este dispositivo</span> · <b id="hCount">1 hoja</b></span><span style="display:flex;gap:8px"><button type="button" class="btn red" id="hNew">+ Nueva hoja</button></span></div>
+        <div class="apfoot"><span><span id="apSaved">Guardado en este dispositivo</span> · <b id="hCount">1 hoja</b></span><span style="display:flex;gap:8px"><button type="button" class="btn" id="apDlOpen"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Descargar</button><button type="button" class="btn red" id="hNew">+ Nueva hoja</button></span></div>
       </section>
 
       <!-- PLAN DE ACCIÓN -->
@@ -927,6 +927,24 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
       </section>
     </main>
 
+  </div>
+</div>
+<div class="modal" id="dlModal" hidden>
+  <div class="mcard" role="dialog" aria-labelledby="dlT">
+    <b id="dlT" style="font-size:17px">Descargar notas</b>
+    <p class="kick" style="margin:4px 0 10px;text-transform:none;letter-spacing:0;font-size:13px">Elige los temas que quieres en un solo archivo.</p>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:700;margin-bottom:6px"><input type="checkbox" id="dlAll"> Seleccionar todos</label>
+    <div id="dlList" style="display:grid;gap:6px;max-height:50vh;overflow:auto;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn red" id="dlGo">Descargar</button><button type="button" class="btn" id="dlClose">Cerrar</button></div>
+  </div>
+</div>
+<div class="modal" id="apDlModal" hidden>
+  <div class="mcard" role="dialog" aria-labelledby="apDlT">
+    <b id="apDlT" style="font-size:17px">Descargar apuntes</b>
+    <p class="kick" style="margin:4px 0 10px;text-transform:none;letter-spacing:0;font-size:13px">Elige los temas que quieres en un solo archivo.</p>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:700;margin-bottom:6px"><input type="checkbox" id="apDlAll"> Seleccionar todos</label>
+    <div id="apDlList" style="display:grid;gap:6px;max-height:50vh;overflow:auto;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn red" id="apDlGo">Descargar</button><button type="button" class="btn" id="apDlClose">Cerrar</button></div>
   </div>
 </div>
 <div class="modal" id="acct" hidden>
@@ -1118,6 +1136,62 @@ function renderGen(n){
 }
 function toast(msg){let el=$('#toast');if(!el){el=document.createElement('div');el.id='toast';el.className='toast';document.body.appendChild(el);}
   el.textContent=msg;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),2400);}
+/* ---------- Descargar notas seleccionadas en un solo archivo ---------- */
+(function(){
+  const m=$('#dlModal'),list=$('#dlList'),all=$('#dlAll');
+  const sorted=()=>curNotes().slice().sort((a,b)=>a.entrega-b.entrega||a.id-b.id);
+  const sync=()=>{const c=[...list.querySelectorAll('input')];all.checked=c.length>0&&c.every(i=>i.checked);};
+  $('#dlOpen').onclick=()=>{
+    const ns=sorted();
+    if(!ns.length){toast('Aún no hay notas para descargar');return;}
+    list.innerHTML=ns.map(n=>`<label style="display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card)"><input type="checkbox" value="${n.id}"><span><b>${esc(n.titulo)}</b> <span class="tag">Entrega ${n.entrega}</span></span></label>`).join('');
+    all.checked=false;m.hidden=false;};
+  all.onchange=()=>list.querySelectorAll('input').forEach(i=>i.checked=all.checked);
+  list.onchange=sync;
+  $('#dlClose').onclick=()=>{m.hidden=true;};
+  m.addEventListener('click',e=>{if(e.target===m)m.hidden=true;});
+  $('#dlGo').onclick=()=>{
+    const ids=[...list.querySelectorAll('input:checked')].map(i=>+i.value);
+    if(!ids.length){toast('Selecciona al menos un tema');return;}
+    const ns=sorted().filter(n=>ids.includes(n.id));
+    const txt=ns.map(n=>n.titulo+'\nEntrega '+n.entrega+' · '+(n.autor||'')+' · '+n.fecha+'\n\n'+n.texto).join('\n\n----------------------------------------\n\n')+'\n';
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob(['\ufeff'+txt],{type:'text/plain;charset=utf-8'}));
+    a.download='notas-MAS.txt';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    m.hidden=true;toast(ns.length+(ns.length===1?' nota descargada':' notas descargadas'));};
+})();
+/* ---------- Descargar apuntes seleccionados en un solo archivo ---------- */
+(function(){
+  const m=$('#apDlModal'),list=$('#apDlList'),all=$('#apDlAll');
+  const pages=()=>{if(page)savePage();return ap.pages.filter(p=>p.gen===cur()).sort((a,b)=>a.entrega-b.entrega);};
+  const name=p=>p.tema||p.speaker||'Sin tema';
+  $('#apDlOpen').onclick=()=>{
+    const ps=pages();
+    if(!ps.length){toast('Aún no hay apuntes para descargar');return;}
+    list.innerHTML=ps.map(p=>`<label style="display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card)"><input type="checkbox" value="${p.id}"><span><b>${esc(name(p))}</b> <span class="tag">Entrega ${p.entrega}</span>${p.speaker&&p.tema?' <small>'+esc(p.speaker)+'</small>':''}</span></label>`).join('');
+    all.checked=false;m.hidden=false;};
+  all.onchange=()=>list.querySelectorAll('input').forEach(i=>i.checked=all.checked);
+  list.onchange=()=>{const c=[...list.querySelectorAll('input')];all.checked=c.length>0&&c.every(i=>i.checked);};
+  $('#apDlClose').onclick=()=>{m.hidden=true;};
+  m.addEventListener('click',e=>{if(e.target===m)m.hidden=true;});
+  $('#apDlGo').onclick=()=>{
+    const ids=[...list.querySelectorAll('input:checked')].map(i=>i.value);
+    if(!ids.length){toast('Selecciona al menos un tema');return;}
+    const ps=pages().filter(p=>ids.includes(p.id));
+    const body=ps.map(p=>{
+      const t=document.createElement('div');t.innerHTML=p.html||'';
+      t.querySelectorAll('.tctl').forEach(x=>x.remove());
+      t.querySelectorAll('.dgm').forEach(x=>{x.innerHTML='<em>[diagrama]</em>';});
+      t.querySelectorAll('[contenteditable]').forEach(x=>x.removeAttribute('contenteditable'));
+      return `<section><h1>${esc(name(p))}</h1><p class="meta">Speaker: ${esc(p.speaker||'—')} · Entrega ${p.entrega} · ${esc(p.fecha||'')}</p>${t.innerHTML}</section>`;}).join('');
+    const html='<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Apuntes MAS</title><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&family=Permanent+Marker&family=Kalam:wght@700&family=Reenie+Beanie&family=Shadows+Into+Light&family=Caveat:wght@600&family=Patrick+Hand&display=swap" rel="stylesheet"><style>body{font-family:Manrope,sans-serif;max-width:760px;margin:30px auto;padding:0 16px;color:#15161a;line-height:1.6}section{page-break-after:always;margin-bottom:48px}h1{margin:0}.meta{color:#666;font-size:14px;border-bottom:2px solid #d10f1f;padding-bottom:8px}table{border-collapse:collapse;margin:10px 0}td{border:1px solid #bbb;padding:6px 10px}mark{background:#ffe14d}</style></head><body>'+body+'</body></html>';
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
+    a.download='apuntes-MAS.html';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    m.hidden=true;toast(ps.length+(ps.length===1?' apunte descargado':' apuntes descargados'));};
+})();
 function go(id){
   activeTab=id;
   const isGen=id.startsWith('gen-'); if(isGen) renderGen(+id.slice(4));
