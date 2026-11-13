@@ -850,12 +850,15 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 .egrp .egb .date{background:rgba(255,255,255,.95);box-shadow:none;border:1px solid #e6e8ec}
 .egrp.past{opacity:.55}
 /* ===== Celular (al final para ganar sobre las reglas base) ===== */
+.tcov .fctl .i{width:14px;height:14px}
+.fbody p span{white-space:nowrap}
 @media(max-width:560px){
 .folders{grid-template-columns:repeat(2,1fr);gap:16px 12px}
 .folder .fnum{font-size:44px}
 .fcover .flab{left:10px;top:9px;font-size:9px}
 .fbody{padding:10px 12px 12px}.fbody b{font-size:14.5px}.fbody p{font-size:12px;line-height:1.35}
 .fctl{right:6px;top:6px;gap:4px}.fctl button{padding:6px 9px;font-size:10.5px}
+.folder .fctl .lbl{display:none}.folder .fctl button{min-width:36px;min-height:36px;justify-content:center;padding:8px}
 .tcov{aspect-ratio:21/9}.tcov .tday{font-size:36px}.tcov .i{width:36px;height:36px}
 .act{flex-wrap:wrap}.act .tx{flex:1 1 calc(100% - 52px);min-width:0}.act .st{margin-left:auto}
 .date{gap:10px}.date .dtx{min-width:0;flex:1}.date .dtx b{font-size:15px}
@@ -1279,7 +1282,7 @@ const entregas=()=>[...new Set([1,2,3,4,5,...cuadernos(cur()).map(r=>r.entrega),
 const chev='<svg class="i chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
 
 const rcAct=r=>r.file?`<button type="button" class="btn" data-view="${r.id}">Ver</button><button type="button" class="btn red" data-dl="${r.id}">Descargar</button>`:r.url?`<a class="btn red" href="${esc(r.url)}" target="_blank" rel="noopener">Abrir enlace</a>`:'<span class="rc-pend">Archivo próximamente</span>';
-const rcCtl=r=>'<div class="fctl admin-only"><button type="button" data-rcover="'+r.id+'"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>'+(r.portada?'Cambiar':'Portada')+'</button>'+(r.portada?'<button type="button" data-runcover="'+r.id+'" aria-label="Quitar portada" title="Quitar portada"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>':'')+'</div>';
+const rcCtl=r=>'<div class="fctl admin-only"><button type="button" data-rcover="'+r.id+'"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg><span class="lbl">'+(r.portada?'Cambiar':'Portada')+'</span></button>'+(r.portada?'<button type="button" data-runcover="'+r.id+'" aria-label="Quitar portada" title="Quitar portada"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>':'')+'</div>';
 const notaCard=r=>`<div class="tcard"><div class="tcov">${r.portadaUrl?`<img${imgCls(r.portadaUrl)} src="${r.portadaUrl}" alt="">`:`<svg class="i" viewBox="0 0 24 24">${IC.plantilla}</svg>`}${rcCtl(r)}</div><div class="tbody"><b>${esc(r.titulo)}</b>${r.desc?`<p>${esc(r.desc)}</p>`:''}${r.file?`<small>${esc(r.file.name)} · ${kb(r.file.size)}</small>`:''}</div><div class="tact">${rcAct(r)}</div></div>`;
 const apCard=p=>{const d=p.fecha?new Date(p.fecha+'T12:00'):null;
   return `<div class="tcard"><div class="tcov apu">${d?`<span class="tday">${d.getDate()}</span><span class="tmon">${d.toLocaleDateString('es-MX',{month:'short'}).replace('.','')}</span>`:`<svg class="i" viewBox="0 0 24 24">${IC.notas}</svg>`}</div><div class="tbody"><b>${esc(p.tema||'Sin tema')}</b>${p.speaker?`<p>${esc(p.speaker)}</p>`:''}</div><div class="tact"><button type="button" class="btn red" data-ap="${p.id}">Abrir</button></div></div>`;};
@@ -1303,8 +1306,8 @@ function render(){
     el.className='folders';
     el.innerHTML=entregas().map(e=>{
       const nc=cuadernos(cur()).filter(r=>r.entrega===e).length,na=misApuntes(e).length,np=curPhotos().filter(p=>p.entrega===e).length,cv=covers[cur()+'-'+e],img=cv&&cv.url;
-      const ctl='<div class="fctl admin-only"><button type="button" data-cover="'+e+'"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>'+(cv?'Cambiar':'Portada')+'</button>'+(cv?'<button type="button" data-uncover="'+e+'" aria-label="Quitar portada" title="Quitar portada"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>':'')+'</div>';
-      return `<div class="folder" role="button" tabindex="0" data-fold="${e}"><div class="fcover">${img?`<img${imgCls(img)} src="${img}" alt="" loading="lazy" decoding="async">`:`<span class="flab">Entrega</span><span class="fnum">${e}</span>`}${ctl}</div><div class="fbody"><b>Entrega ${e}</b><p>${nc} ${nc===1?'nota':'notas'} · ${na} ${na===1?'apunte':'apuntes'} · ${np} ${np===1?'foto':'fotos'}</p></div></div>`;}).join('');
+      const ctl='<div class="fctl admin-only"><button type="button" data-cover="'+e+'" title="'+(cv?'Cambiar portada':'Poner portada')+'" aria-label="'+(cv?'Cambiar portada':'Poner portada')+'"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg><span class="lbl">'+(cv?'Cambiar':'Portada')+'</span></button>'+(cv?'<button type="button" data-uncover="'+e+'" aria-label="Quitar portada" title="Quitar portada"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>':'')+'</div>';
+      return `<div class="folder" role="button" tabindex="0" data-fold="${e}"><div class="fcover">${img?`<img${imgCls(img)} src="${img}" alt="" loading="lazy" decoding="async">`:`<span class="flab">Entrega</span><span class="fnum">${e}</span>`}${ctl}</div><div class="fbody"><b>Entrega ${e}</b><p><span>${nc} ${nc===1?'nota':'notas'}</span> · <span>${na} ${na===1?'apunte':'apuntes'}</span> · <span>${np} ${np===1?'foto':'fotos'}</span></p></div></div>`;}).join('');
   }else{
     const e=openEnt,cs=cuadernos(cur()).filter(r=>r.entrega===e),as=misApuntes(e),ps=curPhotos().filter(p=>p.entrega===e);
     el.className='';
