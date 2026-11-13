@@ -995,6 +995,19 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 
   </div>
 </div>
+<div class="modal" id="ntPanel" hidden>
+  <div class="mcard phcard" role="dialog" aria-labelledby="ntTitle">
+    <div class="phtop"><b id="ntTitle">Subir notas</b><button type="button" class="phx" id="ntX" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="phbody">
+      <div class="phfield"><label for="ntTitulo">Título</label><input class="f" id="ntTitulo" maxlength="120" placeholder="Ej. Notas Primera Entrega" autocomplete="off"></div>
+      <div class="phfield"><label for="ntDesc">Descripción <small>(opcional)</small></label><textarea class="f" id="ntDesc" rows="2" placeholder="Qué contiene este cuaderno"></textarea></div>
+      <div class="phfield"><label>Archivo <small>(PDF, Word, imagen… hasta 25 MB)</small></label><label class="drop" for="ntFile"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Elegir archivo<input id="ntFile" type="file" hidden></label><div class="kick phhint" id="ntFileInfo"></div></div>
+      <div class="phfield"><label for="ntUrl">…o pega un enlace <small>(opcional)</small></label><input class="f" id="ntUrl" placeholder="https://drive.google.com/…" autocomplete="off"></div>
+      <div class="phfield"><label>Portada <small>(opcional)</small></label><img class="rc-pic" id="ntCoverPrev" alt="" hidden><label class="drop" for="ntCover"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>Elegir portada<input id="ntCover" type="file" accept="image/*" hidden></label></div>
+    </div>
+    <div class="phfoot"><button type="button" class="btn" id="ntCancel">Cancelar</button><button type="button" class="btn red" id="ntOk">Publicar</button></div>
+  </div>
+</div>
 <div class="notif" id="notifPanel" hidden>
   <div class="nhead"><b>Notificaciones</b><button type="button" id="notifAll">Marcar todas como leídas</button></div>
   <div id="notifList"></div>
@@ -1214,7 +1227,7 @@ function render(){
     const e=openEnt,cs=cuadernos(cur()).filter(r=>r.entrega===e),as=misApuntes(e),ps=curPhotos().filter(p=>p.entrega===e);
     el.className='';
     el.innerHTML=`<div class="fhead"><button type="button" class="btn" data-back>${back} Entregas</button><b>Entrega ${e}</b></div>`
-      +`<h2 class="sec caps">Notas</h2>`+(cs.length?`<div class="tcards">${cs.map(notaCard).join('')}</div>`:'<p class="kick">Las notas de esta entrega se publicarán pronto</p>')
+      +`<h2 class="sec caps">Notas<button type="button" class="btn red admin-only" data-nt-new>+ Subir notas</button></h2>`+(cs.length?`<div class="tcards">${cs.map(notaCard).join('')}</div>`:'<p class="kick">Las notas de esta entrega se publicarán pronto</p>')
       +`<h2 class="sec caps">Cuaderno de notas <span class="cnt">${as.length}</span></h2>`+(as.length?porDia(as):'<p class="kick">Aún no tienes apuntes de esta entrega. Escríbelos en Mis apuntes.</p>')
       +`<h2 class="sec caps">Fotos <span class="cnt">${ps.length}</span></h2>`+(ps.length?`<div class="grid">${ps.map(p=>photoCard(p,true)).join('')}</div>`:'<p class="kick">Aún no hay fotos de esta entrega</p>');
   }
@@ -1316,6 +1329,7 @@ document.addEventListener('click',e=>{
   const ao=e.target.closest('[data-ap]'); if(ao){go('apuntes');loadPage(ao.dataset.ap);return;}
   const vw=e.target.closest('[data-view]'); if(vw){const r=rc.items.find(x=>x.id===vw.dataset.view);if(r&&r.file)rcView(r);return;}
   const pd=e.target.closest('[data-phdl]'); if(pd){const p=db.photos.find(x=>String(x.id)===pd.dataset.phdl);if(p)phDownload(p);return;}
+  if(e.target.closest('[data-nt-new]')){ntOpen();return;}
   const rcb=e.target.closest('[data-rcover]'); if(rcb){rcCoverFor=rcb.dataset.rcover;$('#rcCoverFile').click();return;}
   const rcu=e.target.closest('[data-runcover]'); if(rcu){rcRemoveCover(rcu.dataset.runcover);return;}
   const cb=e.target.closest('[data-cover]'); if(cb){coverFor=+cb.dataset.cover;$('#coverFile').click();return;}
@@ -1360,6 +1374,56 @@ async function removeCover(ent){
   delete covers[gen+'-'+ent];render();toast('Portada quitada');
 }
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('folder')){e.preventDefault();e.target.click();}});
+/* ---- subir las notas de una entrega directo desde Memorias (solo admin) ----
+   Es el mismo recurso de tipo "notas": se ve aquí, dentro de la entrega, y también en Plantillas y ejercicios. */
+let ntBusy=false;
+function ntOpen(){
+  if(openEnt===null)return;
+  ['#ntTitulo','#ntDesc','#ntUrl'].forEach(s=>{$(s).value='';});
+  $('#ntFile').value='';$('#ntCover').value='';$('#ntFileInfo').textContent='';$('#ntCoverPrev').hidden=true;
+  $('#ntTitle').textContent='Subir notas · Entrega '+openEnt;
+  $('#ntPanel').hidden=false;setTimeout(()=>$('#ntTitulo').focus(),50);
+}
+function ntClose(){$('#ntPanel').hidden=true;}
+$('#ntX').onclick=ntClose;$('#ntCancel').onclick=ntClose;
+$('#ntPanel').addEventListener('click',e=>{if(e.target===$('#ntPanel'))ntClose();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#ntPanel').hidden)ntClose();});
+$('#ntFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  if(f.size>RC_MAX){toast('El archivo pesa '+kb(f.size)+'. El límite es '+kb(RC_MAX)+'.');e.target.value='';$('#ntFileInfo').textContent='';return;}
+  $('#ntFileInfo').textContent=f.name+' · '+kb(f.size);
+  if(!$('#ntTitulo').value.trim())$('#ntTitulo').value=f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');
+};
+$('#ntCover').onchange=e=>{const f=e.target.files[0],im=$('#ntCoverPrev');if(!f){im.hidden=true;return;}im.src=URL.createObjectURL(f);im.hidden=false;};
+$('#ntOk').onclick=async()=>{
+  if(ntBusy)return;
+  const titulo=$('#ntTitulo').value.trim(),f=$('#ntFile').files[0],c=$('#ntCover').files[0],url=safeUrl($('#ntUrl').value),ent=openEnt;
+  if(!titulo){toast('Escribe el título');$('#ntTitulo').focus();return;}
+  if(!f&&!url){toast('Elige un archivo o pega un enlace');return;}
+  ntBusy=true;$('#ntOk').disabled=true;
+  const subidos=[];
+  try{
+    let fm={},portada=null;
+    if(f){
+      const path=crypto.randomUUID()+'/'+fileKey(f.name);
+      const up=await sb.storage.from('recursos').upload(path,f,{contentType:f.type||'application/octet-stream'});if(up.error)throw up.error;
+      subidos.push(['recursos',path]);fm={file_path:path,file_name:f.name,file_size:f.size,file_type:f.type};
+    }
+    if(c){
+      const u=await shrink(c,1200);if(!u)throw new Error('portada no válida');
+      const blob=await (await fetch(u)).blob(),p2='portadas/n-'+crypto.randomUUID()+'.jpg';
+      const up=await sb.storage.from('galeria').upload(p2,blob,{contentType:'image/jpeg'});if(up.error)throw up.error;
+      subidos.push(['galeria',p2]);portada=p2;
+    }
+    const {error}=await sb.from('recursos').insert({tipo:'notas',entrega:ent,gen:cur(),titulo,descr:$('#ntDesc').value.trim(),url,...(portada?{portada}:{}),...fm});
+    if(error)throw error;
+    ntClose();await rcLoad();toast('Notas publicadas');
+  }catch(err){
+    console.error(err);
+    for(const [b,p] of subidos)await sb.storage.from(b).remove([p]);   /* no dejar archivos huérfanos */
+    toast('No se pudo publicar. Inténtalo de nuevo.');
+  }finally{ntBusy=false;$('#ntOk').disabled=false;}
+};
 /* ---- portada de cada nota (solo admin) ---- */
 let rcCoverFor=null;
 $('#rcCoverFile').onchange=async e=>{
