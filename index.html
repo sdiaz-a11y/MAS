@@ -613,17 +613,6 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 /* móvil y pantallas táctiles: zonas de toque cómodas, filtros en una línea */
 .chip{white-space:nowrap;flex:none}
-@media(max-width:560px){
-.folders{grid-template-columns:repeat(2,1fr);gap:16px 12px}
-.folder .fnum{font-size:44px}
-.fcover .flab{left:10px;top:9px;font-size:9px}
-.fbody{padding:10px 12px 12px}.fbody b{font-size:14.5px}.fbody p{font-size:12px;line-height:1.35}
-.fctl{right:6px;top:6px;gap:4px}.fctl button{padding:6px 9px;font-size:10.5px}
-.tcov{aspect-ratio:21/9}.tcov .tday{font-size:36px}.tcov .i{width:36px;height:36px}
-.act{flex-wrap:wrap}.act .tx{flex:1 1 calc(100% - 52px);min-width:0}.act .st{margin-left:auto}
-.date{gap:10px}.date .dd,.egrp .egd{min-width:60px;flex:none}.date .dtx{min-width:0;flex:1}.date .dtx b{font-size:15px}
-.date .when{font-size:10px;padding:4px 8px;letter-spacing:.03em;flex:none}.date .chev{width:16px;flex:none}
-}
 .phtop b{text-align:center}
 @media(pointer:coarse){.act .chk{position:relative}.act .chk::after{content:'';position:absolute;inset:-8px}.act .del{min-width:40px;min-height:40px}.act .st{min-height:38px}.pctl button{width:38px;height:38px}.fctl button{min-height:36px}.nhead button{padding:10px 4px}.lk-link{min-height:44px}}
 @media(pointer:coarse){.chip{min-height:40px}.btn{min-height:40px}.top #roleBtn,.top #logoutBtn,.top #bellBtn{min-width:40px;min-height:40px}.tabs .tab{min-height:48px}}
@@ -631,7 +620,7 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 /* respiro entre el subtítulo de cada pantalla y su contenido */
 .view>h1+.kick{margin-bottom:16px}
 /* el visor muestra la foto grande, no en un cuadro chico */
-.lb .big{display:flex;flex-direction:column;justify-content:center;align-items:stretch;width:min(94vw,980px);height:auto;max-height:90vh;aspect-ratio:auto;background:#0b0b0d;overflow:auto}
+.lb .big{display:flex;flex-direction:column;justify-content:center;align-items:stretch;width:min(94vw,980px);height:auto;max-height:90vh;aspect-ratio:auto;background:#0b0b0d!important;overflow:auto}
 .lb .big img{position:static;flex:none;width:100%;height:auto;max-height:72vh;object-fit:contain}
 .lb .big span{position:static;background:none;padding:14px 18px 18px}
 .tcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
@@ -860,6 +849,19 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 .egrp .egb{display:grid;gap:8px;padding:8px 0 4px 18px}
 .egrp .egb .date{background:rgba(255,255,255,.95);box-shadow:none;border:1px solid #e6e8ec}
 .egrp.past{opacity:.55}
+/* ===== Celular (al final para ganar sobre las reglas base) ===== */
+@media(max-width:560px){
+.folders{grid-template-columns:repeat(2,1fr);gap:16px 12px}
+.folder .fnum{font-size:44px}
+.fcover .flab{left:10px;top:9px;font-size:9px}
+.fbody{padding:10px 12px 12px}.fbody b{font-size:14.5px}.fbody p{font-size:12px;line-height:1.35}
+.fctl{right:6px;top:6px;gap:4px}.fctl button{padding:6px 9px;font-size:10.5px}
+.tcov{aspect-ratio:21/9}.tcov .tday{font-size:36px}.tcov .i{width:36px;height:36px}
+.act{flex-wrap:wrap}.act .tx{flex:1 1 calc(100% - 52px);min-width:0}.act .st{margin-left:auto}
+.date{gap:10px}.date .dtx{min-width:0;flex:1}.date .dtx b{font-size:15px}
+.date .dd,.egrp .egd{width:66px;min-width:66px;flex:none;padding-left:4px;padding-right:4px;box-sizing:border-box}
+.date .when{font-size:10px;padding:4px 8px;letter-spacing:.03em;flex:none}.date .chev{width:16px;flex:none}
+}
 </style>
 </head>
 <body>
