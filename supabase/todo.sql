@@ -1,16 +1,11 @@
 -- MAS · Instalación completa en UN solo archivo (schema + password_reset + fechas + datos).
--- Pégalo entero en Supabase > SQL Editor y ejecútalo. Antes, cambia 'CAMBIAR-ESTE-CODIGO' por el código real del grupo.
--- Si ya corriste alguno de los archivos sueltos, también se puede volver a correr sin perder datos.
+-- Pégalo entero en Supabase > SQL Editor y ejecútalo. Se puede volver a correr sin perder datos.
 
 -- =================================== schema.sql ===================================
 -- MAS · Portal de miembros — esquema de acceso (Supabase)
--- ORDEN:
---  1) NOTA: auth.users no se puede alterar desde el SQL Editor. Para crear el primer admin desde el dashboard,
---     inserta antes ("bootstrap",1) en app_secrets (ver instrucciones), crea el usuario sdiaz@zigma3.com y bórralo después.
---  2) Dashboard > Authentication > Providers > Email: desactiva "Confirm email" (el acceso lo da el código del grupo).
---  3) Pega y ejecuta este archivo completo en SQL Editor.
---  4) Después ejecuta, en este orden: password_reset.sql (restablecer contraseñas con aprobación del admin),
---     fechas.sql (calendario) y datos.sql (notas, galería, apuntes, plan de acción, recursos y generaciones).
+-- Pega y ejecuta este archivo en SQL Editor. Después, en este orden: password_reset.sql, fechas.sql y datos.sql
+-- (o usa todo.sql, que trae los cuatro juntos).
+-- Cualquiera puede crear su cuenta y entra de inmediato; el admin puede sacarlo o cambiarle la contraseña desde el portal.
 
 create extension if not exists pgcrypto with schema extensions;
 
@@ -32,11 +27,6 @@ create table if not exists public.app_secrets (key text primary key, value text 
 alter table public.app_secrets enable row level security;
 revoke all on public.app_secrets from anon, authenticated;
 
--- código del grupo inicial: cámbialo aquí ANTES de ejecutar (este repo es público) o luego desde la pestaña Solicitudes.
-insert into public.app_secrets(key, value)
-values ('group_code', extensions.crypt('CAMBIAR-ESTE-CODIGO', extensions.gen_salt('bf')))
-on conflict (key) do nothing;
-
 -- ---------- ¿el usuario actual es admin aprobado? ----------
 create or replace function public.is_admin() returns boolean
 language sql security definer stable set search_path = public as $$
@@ -52,18 +42,10 @@ create policy "admin ve todos" on public.profiles for select to authenticated us
 create policy "admin edita"    on public.profiles for update to authenticated using (public.is_admin()) with check (public.is_admin());
 -- sin políticas de insert/delete: los perfiles solo los crea el trigger de abajo.
 
--- ---------- alta: valida el código del grupo EN EL SERVIDOR y crea el perfil ya aprobado ----------
+-- ---------- alta: crea el perfil ya aprobado ----------
 create or replace function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path = public, extensions as $$
-declare h text; c text := coalesce(new.raw_user_meta_data->>'codigo', '');
 begin
-  -- modo arranque: con la fila 'bootstrap' en app_secrets se permite crear el primer admin desde el dashboard
-  if not exists (select 1 from public.app_secrets where key = 'bootstrap') then
-    select value into h from public.app_secrets where key = 'group_code';
-    if c = '' or h is null or extensions.crypt(c, h) <> h then
-      raise exception 'codigo_invalido';
-    end if;
-  end if;
   insert into public.profiles(id, nombre, email, tel, foto, estado)
   values (new.id,
           coalesce(new.raw_user_meta_data->>'nombre', ''),
@@ -71,7 +53,7 @@ begin
           coalesce(new.raw_user_meta_data->>'tel', ''),
           coalesce(new.raw_user_meta_data->>'foto', ''),
           'aprobado');
-  -- sin aprobación de admin: el correo se da por confirmado para que nadie quede bloqueado
+  -- el correo se da por confirmado para que nadie quede bloqueado
   update auth.users set email_confirmed_at = coalesce(email_confirmed_at, now()) where id = new.id;
   return new;
 end $$;
@@ -80,17 +62,6 @@ revoke execute on function public.handle_new_user() from public, anon, authentic
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created after insert on auth.users
 for each row execute function public.handle_new_user();
-
--- ---------- cambiar el código del grupo (solo admin) ----------
-create or replace function public.set_group_code(nuevo text) returns void
-language plpgsql security definer set search_path = public, extensions as $$
-begin
-  if not public.is_admin() then raise exception 'no autorizado'; end if;
-  if length(coalesce(nuevo, '')) < 6 then raise exception 'codigo_corto'; end if;
-  update public.app_secrets set value = extensions.crypt(nuevo, extensions.gen_salt('bf')) where key = 'group_code';
-end $$;
-revoke execute on function public.set_group_code(text) from public, anon;
-grant  execute on function public.set_group_code(text) to authenticated;
 
 -- ---------- el admin inicial (el usuario del paso 1) ----------
 insert into public.profiles(id, nombre, email, rol, estado)
@@ -206,9 +177,8 @@ where not exists (select 1 from public.fechas);
 -- ORDEN: schema.sql → password_reset.sql → fechas.sql → este archivo. Se puede volver a correr sin perder datos.
 --
 -- Quién ve qué:
---   generaciones, notas, fotos, recursos → los ven todos los miembros aprobados; las fotos y recursos los gestiona un admin.
---                                          Las notas las publica cualquier miembro; editar/borrar es de admin.
---   apuntes, plan_acciones               → privados: cada miembro solo ve y toca lo suyo.
+--   generaciones, fotos, recursos → los ven todos los miembros; fotos y recursos los gestiona un admin.
+--   notas, apuntes, plan_acciones  → privados: cada quien ve, edita y borra solo lo suyo.
 --   Storage (galeria, recursos)          → buckets privados: leen los miembros, escriben los admin.
 
 create or replace function public.is_member() returns boolean
@@ -251,7 +221,7 @@ language sql security definer stable set search_path = public as $$
 $$;
 revoke execute on function public.nombres_miembros() from public, anon;
 
--- ---------- notas (compartidas) ----------
+-- ---------- notas (PRIVADAS: cada quien solo ve las suyas) ----------
 create table if not exists public.notas (
   id       bigint generated always as identity primary key,
   gen      int  not null references public.generaciones(n),
@@ -278,14 +248,13 @@ revoke execute on function public.notas_autor() from public, anon, authenticated
 drop trigger if exists notas_autor on public.notas;
 create trigger notas_autor before insert on public.notas for each row execute function public.notas_autor();
 
-drop policy if exists "miembros ven notas"    on public.notas;
-drop policy if exists "miembros publican"     on public.notas;
-drop policy if exists "admin edita notas"     on public.notas;
-drop policy if exists "admin borra notas"     on public.notas;
-create policy "miembros ven notas" on public.notas for select to authenticated using (public.is_member());
-create policy "miembros publican"  on public.notas for insert to authenticated with check (public.is_member() and autor_id = auth.uid());
-create policy "admin edita notas"  on public.notas for update to authenticated using (public.is_admin()) with check (public.is_admin());
-create policy "admin borra notas"  on public.notas for delete to authenticated using (public.is_admin());
+drop policy if exists "miembros ven notas" on public.notas;
+drop policy if exists "miembros publican"  on public.notas;
+drop policy if exists "admin edita notas"  on public.notas;
+drop policy if exists "admin borra notas"  on public.notas;
+drop policy if exists "notas propias"      on public.notas;
+create policy "notas propias" on public.notas for all to authenticated
+  using (autor_id = auth.uid() and public.is_member()) with check (autor_id = auth.uid() and public.is_member());
 
 -- ---------- galería (compartida; archivos en el bucket 'galeria') ----------
 create table if not exists public.fotos (
@@ -391,4 +360,3 @@ create policy "miembros leen recursos" on storage.objects for select to authenti
 create policy "admin sube recursos"    on storage.objects for insert to authenticated with check (bucket_id = 'recursos' and public.is_admin());
 create policy "admin edita recursos"   on storage.objects for update to authenticated using (bucket_id = 'recursos' and public.is_admin());
 create policy "admin borra recursos"   on storage.objects for delete to authenticated using (bucket_id = 'recursos' and public.is_admin());
-

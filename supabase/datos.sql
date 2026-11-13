@@ -2,9 +2,8 @@
 -- ORDEN: schema.sql → password_reset.sql → fechas.sql → este archivo. Se puede volver a correr sin perder datos.
 --
 -- Quién ve qué:
---   generaciones, notas, fotos, recursos → los ven todos los miembros aprobados; las fotos y recursos los gestiona un admin.
---                                          Las notas las publica cualquier miembro; editar/borrar es de admin.
---   apuntes, plan_acciones               → privados: cada miembro solo ve y toca lo suyo.
+--   generaciones, fotos, recursos → los ven todos los miembros; fotos y recursos los gestiona un admin.
+--   notas, apuntes, plan_acciones  → privados: cada quien ve, edita y borra solo lo suyo.
 --   Storage (galeria, recursos)          → buckets privados: leen los miembros, escriben los admin.
 
 create or replace function public.is_member() returns boolean
@@ -47,7 +46,7 @@ language sql security definer stable set search_path = public as $$
 $$;
 revoke execute on function public.nombres_miembros() from public, anon;
 
--- ---------- notas (compartidas) ----------
+-- ---------- notas (PRIVADAS: cada quien solo ve las suyas) ----------
 create table if not exists public.notas (
   id       bigint generated always as identity primary key,
   gen      int  not null references public.generaciones(n),
@@ -74,14 +73,13 @@ revoke execute on function public.notas_autor() from public, anon, authenticated
 drop trigger if exists notas_autor on public.notas;
 create trigger notas_autor before insert on public.notas for each row execute function public.notas_autor();
 
-drop policy if exists "miembros ven notas"    on public.notas;
-drop policy if exists "miembros publican"     on public.notas;
-drop policy if exists "admin edita notas"     on public.notas;
-drop policy if exists "admin borra notas"     on public.notas;
-create policy "miembros ven notas" on public.notas for select to authenticated using (public.is_member());
-create policy "miembros publican"  on public.notas for insert to authenticated with check (public.is_member() and autor_id = auth.uid());
-create policy "admin edita notas"  on public.notas for update to authenticated using (public.is_admin()) with check (public.is_admin());
-create policy "admin borra notas"  on public.notas for delete to authenticated using (public.is_admin());
+drop policy if exists "miembros ven notas" on public.notas;
+drop policy if exists "miembros publican"  on public.notas;
+drop policy if exists "admin edita notas"  on public.notas;
+drop policy if exists "admin borra notas"  on public.notas;
+drop policy if exists "notas propias"      on public.notas;
+create policy "notas propias" on public.notas for all to authenticated
+  using (autor_id = auth.uid() and public.is_member()) with check (autor_id = auth.uid() and public.is_member());
 
 -- ---------- galería (compartida; archivos en el bucket 'galeria') ----------
 create table if not exists public.fotos (
