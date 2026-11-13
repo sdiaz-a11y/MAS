@@ -613,12 +613,27 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 /* móvil y pantallas táctiles: zonas de toque cómodas, filtros en una línea */
 .chip{white-space:nowrap;flex:none}
+@media(max-width:560px){
+.folders{grid-template-columns:repeat(2,1fr);gap:16px 12px}
+.folder .fnum{font-size:44px}
+.fcover .flab{left:10px;top:9px;font-size:9px}
+.fbody{padding:10px 12px 12px}.fbody b{font-size:14.5px}.fbody p{font-size:12px;line-height:1.35}
+.fctl{right:6px;top:6px;gap:4px}.fctl button{padding:6px 9px;font-size:10.5px}
+.tcov{aspect-ratio:21/9}.tcov .tday{font-size:36px}.tcov .i{width:36px;height:36px}
+.act{flex-wrap:wrap}.act .tx{flex:1 1 calc(100% - 52px);min-width:0}.act .st{margin-left:auto}
+.date{gap:10px}.date .dd,.egrp .egd{min-width:60px;flex:none}.date .dtx{min-width:0;flex:1}.date .dtx b{font-size:15px}
+.date .when{font-size:10px;padding:4px 8px;letter-spacing:.03em;flex:none}.date .chev{width:16px;flex:none}
+}
+.phtop b{text-align:center}
+@media(pointer:coarse){.act .chk{position:relative}.act .chk::after{content:'';position:absolute;inset:-8px}.act .del{min-width:40px;min-height:40px}.act .st{min-height:38px}.pctl button{width:38px;height:38px}.fctl button{min-height:36px}.nhead button{padding:10px 4px}.lk-link{min-height:44px}}
 @media(pointer:coarse){.chip{min-height:40px}.btn{min-height:40px}.top #roleBtn,.top #logoutBtn,.top #bellBtn{min-width:40px;min-height:40px}.tabs .tab{min-height:48px}}
 @media(max-width:520px){.srow label{font-size:9px;letter-spacing:.06em}.srow select{width:46px!important;flex:none!important}#apFecha{font-size:12.5px!important;padding-left:2px!important;padding-right:0!important;min-width:0}#apFecha::-webkit-calendar-picker-indicator{margin:0;padding:0 0 0 2px;width:14px}}
 /* respiro entre el subtítulo de cada pantalla y su contenido */
 .view>h1+.kick{margin-bottom:16px}
 /* el visor muestra la foto grande, no en un cuadro chico */
-.lb .big{width:min(94vw,980px);height:min(86vh,760px);aspect-ratio:auto}
+.lb .big{display:flex;flex-direction:column;justify-content:center;align-items:stretch;width:min(94vw,980px);height:auto;max-height:90vh;aspect-ratio:auto;background:#0b0b0d;overflow:auto}
+.lb .big img{position:static;flex:none;width:100%;height:auto;max-height:72vh;object-fit:contain}
+.lb .big span{position:static;background:none;padding:14px 18px 18px}
 .tcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
 .tcard{display:flex;flex-direction:column;overflow:hidden;border-radius:16px;background:#fff;border:1px solid #dfe2e7;box-shadow:0 14px 26px -20px rgba(18,20,30,.55);transition:transform .3s var(--ease),box-shadow .3s,border-color .3s}
 .tcard:hover{transform:translateY(-3px);border-color:#e9a3ac;box-shadow:0 0 0 1px rgba(209,15,31,.35),0 18px 30px -16px rgba(209,15,31,.35)}
@@ -637,7 +652,6 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 .cuad-act{display:flex;gap:8px;flex:none}
 .cuad .btn{flex:none}
 @media(max-width:560px){.cuad{flex-wrap:wrap}.cuad-act{width:100%}.cuad-act .btn{flex:1}}
-.lb .big img{object-fit:contain;background:#0b0b0d}
 .folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;padding-top:6px}
 .folder{position:relative;display:flex;flex-direction:column;overflow:hidden;cursor:pointer;border-radius:16px;background:#fff;border:1px solid #dfe2e7;box-shadow:0 14px 26px -20px rgba(18,20,30,.55);transition:transform .3s var(--ease),box-shadow .3s,border-color .3s}
 .folder:hover{transform:translateY(-4px);border-color:#e9a3ac;box-shadow:0 0 0 1px rgba(209,15,31,.45),0 20px 32px -16px rgba(209,15,31,.4)}
