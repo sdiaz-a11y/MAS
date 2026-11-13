@@ -725,6 +725,11 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 .lk-msg.err{background:rgba(224,17,43,.16);color:#ff9aa6;box-shadow:inset 0 0 0 1px rgba(224,17,43,.4)}
 .lk-msg.info{background:rgba(255,255,255,.08);color:#dfe2e8;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
 .lk-photo{display:flex;align-items:center;gap:14px}
+.lk-req{margin:0;color:#b7bac2;font-size:12.5px}
+.lk-req span,.ast{color:#ff5a6e;font-style:normal;font-weight:700}
+.lk-form input.bad,.lk-prev.bad{border-color:#e0112b!important;box-shadow:0 0 0 3px rgba(224,17,43,.28)!important}
+.lk-prev{cursor:pointer;transition:transform .2s,box-shadow .2s}
+.lk-prev:hover{transform:scale(1.05);box-shadow:inset 0 0 0 2px rgba(255,255,255,.4)}
 .lk-prev{flex:none;width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 2px rgba(255,255,255,.18);overflow:hidden;color:#8d929d}
 .lk-prev.has{box-shadow:0 0 0 2px #e0112b}
 .lk-prev img{width:100%;height:100%;object-fit:cover}
@@ -1039,12 +1044,13 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
     </form>
 
     <form class="lk-form" id="lkReq" hidden novalidate>
-      <label>Nombre completo<input type="text" id="rqNombre" required autocomplete="name" placeholder="Nombre y apellido"></label>
-      <label>Correo<input type="email" id="rqEmail" required autocomplete="email" placeholder="tu@correo.com"></label>
-      <label>Teléfono<input type="tel" id="rqTel" required autocomplete="tel" placeholder="55 1234 5678"></label>
-      <div class="lk-photo"><span class="lk-prev" id="lkPrev"><svg class="i" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><label class="lk-pbtn" for="lkPhoto"><span id="lkPhotoTxt">Agregar mi foto</span><input type="file" id="lkPhoto" accept="image/*" hidden></label></div>
-      <label>Crea tu contraseña personal<span class="lk-pw"><input type="password" id="rqNew" required autocomplete="new-password" placeholder="Mínimo 8 caracteres"><button type="button" class="lk-eye" aria-label="Mostrar contraseña"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
-      <label>Repite tu contraseña<input type="password" id="rqNew2" required autocomplete="new-password" placeholder="Igual que arriba"></label>
+      <p class="lk-req">Todos los campos son obligatorios <span>*</span></p>
+      <label><span>Nombre completo <i class="ast">*</i></span><input type="text" id="rqNombre" required autocomplete="name" placeholder="Nombre y apellido"></label>
+      <label><span>Correo <i class="ast">*</i></span><input type="email" id="rqEmail" required autocomplete="email" placeholder="tu@correo.com"></label>
+      <label><span>Teléfono <i class="ast">*</i></span><input type="tel" id="rqTel" required autocomplete="tel" placeholder="55 1234 5678"></label>
+      <div class="lk-photo"><label class="lk-prev" id="lkPrev" for="lkPhoto" title="Subir mi foto"><svg class="i" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></label><label class="lk-pbtn" for="lkPhoto"><span id="lkPhotoTxt">Agregar mi foto *</span><input type="file" id="lkPhoto" accept="image/*" hidden></label></div>
+      <label><span>Crea tu contraseña personal <i class="ast">*</i></span><span class="lk-pw"><input type="password" id="rqNew" required autocomplete="new-password" placeholder="Mínimo 8 caracteres"><button type="button" class="lk-eye" aria-label="Mostrar contraseña"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
+      <label><span>Repite tu contraseña <i class="ast">*</i></span><input type="password" id="rqNew2" required autocomplete="new-password" placeholder="Igual que arriba"></label>
       <div class="lk-msg" id="lkReqMsg" role="alert"></div>
       <button class="lk-go" type="submit">Crear cuenta</button>
     </form>
@@ -1979,17 +1985,22 @@ $('#lkNew').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
 });};
 let reqPhoto='';
 $('#lkPhoto').onchange=async e=>{const f=e.target.files[0];if(!f)return;const url=await shrink(f,360);if(!url){say($('#lkReqMsg'),'No se pudo leer esa imagen. Prueba con otra.','err');return;}
-  reqPhoto=url;$('#lkPrev').innerHTML=`<img src="${url}" alt="">`;$('#lkPrev').classList.add('has');$('#lkPhotoTxt').textContent='Cambiar foto';};
+  reqPhoto=url;$('#lkPrev').innerHTML=`<img src="${url}" alt="">`;$('#lkPrev').classList.add('has');$('#lkPhotoTxt').textContent='Cambiar foto';$('#lkPrev').classList.remove('bad');};
+document.querySelectorAll('#lkReq input').forEach(i=>i.addEventListener('input',()=>i.classList.remove('bad')));
 $('#lkReq').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
   const msg=$('#lkReqMsg');
+  document.querySelectorAll('#lkReq .bad').forEach(x=>x.classList.remove('bad'));
+  const bad=(sel,t)=>{say(msg,t,'err');const el=$(sel);if(el){el.classList.add('bad');if(el.focus&&el.tagName==='INPUT')el.focus();}shake();};
   const nombre=$('#rqNombre').value.trim().replace(/\s+/g,' '),email=$('#rqEmail').value.trim().toLowerCase(),tel=$('#rqTel').value.trim();
-  if(nombre.split(' ').length<2){say(msg,'Escribe tu nombre completo (nombre y apellido).','err');return;}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){say(msg,'Revisa tu correo: no parece válido.','err');return;}
-  if(tel.replace(/\D/g,'').length<10){say(msg,'Escribe un teléfono de al menos 10 dígitos.','err');return;}
-  if(!reqPhoto){say(msg,'Agrega una foto tuya para que el equipo pueda identificarte.','err');return;}
+  const falta=[['#rqNombre',nombre],['#rqEmail',email],['#rqTel',tel],['#rqNew',$('#rqNew').value],['#rqNew2',$('#rqNew2').value]].find(([,v])=>!v);
+  if(falta){bad(falta[0],'Todos los campos son obligatorios.');return;}
+  if(nombre.split(' ').length<2){bad('#rqNombre','Escribe tu nombre completo (nombre y apellido).');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){bad('#rqEmail','Revisa tu correo: no parece válido.');return;}
+  if(tel.replace(/\D/g,'').length<10){bad('#rqTel','Escribe un teléfono de al menos 10 dígitos.');return;}
+  if(!reqPhoto){bad('#lkPrev','Agrega tu foto (toca la cámara): todos los campos son obligatorios.');return;}
   const np=$('#rqNew').value,np2=$('#rqNew2').value;
-  if(np.length<8){say(msg,'Tu contraseña personal debe tener al menos 8 caracteres.','err');return;}
-  if(np!==np2){say(msg,'Las contraseñas no coinciden.','err');return;}
+  if(np.length<8){bad('#rqNew','Tu contraseña personal debe tener al menos 8 caracteres.');return;}
+  if(np!==np2){bad('#rqNew2','Las contraseñas no coinciden.');return;}
   const {error}=await sb.auth.signUp({email,password:np,options:{data:{nombre,tel,foto:reqPhoto}}});
   if(error){
     if(/already registered/i.test(error.message))say(msg,'Ese correo ya tiene cuenta. Inicia sesión.','info');
