@@ -577,8 +577,10 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 .cuad .tx b{display:block;font-size:14.5px}
 .cuad .tx p{font-size:13px;color:#4a4d55;margin:2px 0 0}
 .cuad .tx small{display:block;color:#8d929d;font-size:12px;margin-top:2px;overflow-wrap:anywhere}
+.cuad-act{display:flex;gap:8px;flex:none}
 .cuad .btn{flex:none}
-@media(max-width:560px){.cuad{flex-wrap:wrap}.cuad .btn{width:100%}}
+@media(max-width:560px){.cuad{flex-wrap:wrap}.cuad-act{width:100%}.cuad-act .btn{flex:1}}
+.lb .big img{object-fit:contain;background:#0b0b0d}
 .folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;padding-top:6px}
 .folder{position:relative;display:flex;flex-direction:column;overflow:hidden;cursor:pointer;border-radius:16px;background:#fff;border:1px solid #dfe2e7;box-shadow:0 14px 26px -20px rgba(18,20,30,.55);transition:transform .3s var(--ease),box-shadow .3s,border-color .3s}
 .folder:hover{transform:translateY(-4px);border-color:#e9a3ac;box-shadow:0 0 0 1px rgba(209,15,31,.45),0 20px 32px -16px rgba(209,15,31,.4)}
@@ -1085,15 +1087,16 @@ const fmt=d=>new Date(d+'T12:00').toLocaleDateString('es-MX',{day:'numeric',mont
 const cur=()=>db.currentGen;
 const curPhotos=()=>db.photos.filter(p=>p.gen===cur());
 const cuadernos=g=>rc.items.filter(r=>r.tipo==='notas'&&r.gen===g&&r.entrega);   /* el cuaderno de cada entrega: un recurso de tipo notas */
-const entregas=()=>[...new Set([1,2,3,4,5,...cuadernos(cur()).map(r=>r.entrega),...curPhotos().map(p=>p.entrega)])].sort((a,b)=>b-a);
+const entregas=()=>[...new Set([1,2,3,4,5,...cuadernos(cur()).map(r=>r.entrega),...curPhotos().map(p=>p.entrega)])].sort((a,b)=>a-b);
 const chev='<svg class="i chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
 
-const rcAct=r=>r.file?`<button type="button" class="btn red" data-dl="${r.id}">Descargar</button>`:r.url?`<a class="btn red" href="${esc(r.url)}" target="_blank" rel="noopener">Abrir enlace</a>`:'<span class="rc-pend">Archivo próximamente</span>';
-const cuadRow=(r,tag)=>`<div class="cuad"><div class="rc-ico notas"><svg class="i" viewBox="0 0 24 24">${IC.notas}</svg></div><div class="tx"><b>${esc(r.titulo)}</b>${tag?`<span class="tag">Entrega ${r.entrega}</span>`:''}${r.desc?`<p>${esc(r.desc)}</p>`:''}${r.file?`<small>${esc(r.file.name)} · ${kb(r.file.size)}</small>`:''}</div>${rcAct(r)}</div>`;
+const rcAct=r=>r.file?`<button type="button" class="btn" data-view="${r.id}">Ver</button><button type="button" class="btn red" data-dl="${r.id}">Descargar</button>`:r.url?`<a class="btn red" href="${esc(r.url)}" target="_blank" rel="noopener">Abrir enlace</a>`:'<span class="rc-pend">Archivo próximamente</span>';
+const cuadRow=(r,tag)=>`<div class="cuad"><div class="rc-ico notas"><svg class="i" viewBox="0 0 24 24">${IC.notas}</svg></div><div class="tx"><b>${esc(r.titulo)}</b>${tag?`<span class="tag">Entrega ${r.entrega}</span>`:''}${r.desc?`<p>${esc(r.desc)}</p>`:''}${r.file?`<small>${esc(r.file.name)} · ${kb(r.file.size)}</small>`:''}</div><div class="cuad-act">${rcAct(r)}</div></div>`;
+const isAdm=()=>ME&&ME.rol==='admin';
 const canEdit=p=>ME&&(ME.rol==='admin'||p.autor_id===ME.id);   /* cada quien edita sus fotos; el admin, todas */
 const ICON_USER='<svg class="i" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>';
 const whoHTML=p=>p.nombres&&p.nombres.length?`<figcaption class="who">${ICON_USER}<span>${p.nombres.map(esc).join(' · ')}</span></figcaption>`:'<figcaption class="who none admin-only">Sin nombres</figcaption>';
-const photoCard=p=>`<figure class="pcard"><div class="photo" style="background:${p.bg||'#444'}" data-id="${p.id}">${p.url?`<img src="${p.url}" alt="${esc(p.titulo)}">`:''}<span>${esc(p.titulo)}</span>${canEdit(p)?'<div class="pctl"><button type="button" data-pa="edit" title="Editar nombres" aria-label="Editar nombres"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button><button type="button" data-pa="del" title="Eliminar foto" aria-label="Eliminar foto"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div>':''}</div>${whoHTML(p)}</figure>`;
+const photoCard=(p,adm)=>`<figure class="pcard"><div class="photo" style="background:${p.bg||'#444'}" data-id="${p.id}">${p.url?`<img src="${p.url}" alt="${esc(p.titulo)}">`:''}<span>${esc(p.titulo)}</span>${(adm?isAdm():canEdit(p))?'<div class="pctl"><button type="button" data-pa="edit" title="Editar nombres" aria-label="Editar nombres"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button><button type="button" data-pa="del" title="Eliminar foto" aria-label="Eliminar foto"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div>':''}</div>${whoHTML(p)}</figure>`;
 function filters(el,cur,set){
   el.innerHTML=[['all','Todas'],...entregas().map(e=>[String(e),'Entrega '+e])].map(([v,l])=>`<button class="chip ${cur===v?'on':''}" data-v="${v}">${l}</button>`).join('');
   el.onclick=e=>{const v=e.target.dataset.v; if(v){set(v);render();}};
@@ -1114,7 +1117,7 @@ function render(){
     el.className='';
     el.innerHTML=`<div class="fhead"><button type="button" class="btn" data-back>${back} Entregas</button><b>Entrega ${e}</b></div>`
       +`<h2 class="sec caps">Cuaderno de notas</h2>`+(cs.length?`<div class="rows">${cs.map(r=>cuadRow(r)).join('')}</div>`:'<p class="kick">El cuaderno de esta entrega se publicará pronto</p>')
-      +`<h2 class="sec caps">Fotos <span class="cnt">${ps.length}</span></h2>`+(ps.length?`<div class="grid">${ps.map(photoCard).join('')}</div>`:'<p class="kick">Aún no hay fotos de esta entrega</p>');
+      +`<h2 class="sec caps">Fotos <span class="cnt">${ps.length}</span></h2>`+(ps.length?`<div class="grid">${ps.map(p=>photoCard(p,true)).join('')}</div>`:'<p class="kick">Aún no hay fotos de esta entrega</p>');
   }
   const MES={ENE:0,FEB:1,MAR:2,ABR:3,MAY:4,JUN:5,JUL:6,AGO:7,SEP:8,OCT:9,NOV:10,DIC:11},MN=Object.keys(MES);
   const t0=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate());};
@@ -1135,7 +1138,7 @@ function render(){
       return `<div class="date ${d<t0()?'past admin-only':''}"><div class="dd">${d.getDate()}<small>${MN[d.getMonth()]}</small></div><div class="dtx"><b>${esc(sub)}</b><span class="dlug">${wd.charAt(0).toUpperCase()+wd.slice(1)}${x.lugar?' · '+esc(x.lugar):''}</span></div><span class="when">${left(d)}</span><button type="button" class="dx admin-only" onclick="delDate('${x.id}')" aria-label="Quitar fecha" title="Quitar fecha"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`;}).join('');
     return `<details class="egrp ${nxt?'':'past admin-only'}" data-k="${esc(k)}" ${openG.has(k)?'open':''}><summary class="date"><div class="dd egd">${dd(r)}<small>${MN[r[0].d.getMonth()]}</small></div><div class="dtx"><b>${esc(k)}</b><span class="dlug">${wr(r)}${lug?' · '+esc(lug):''}</span></div><span class="when">${nxt?left(nxt.d):'Terminada'}</span>${chev}</summary><div class="egb">${rows}</div></details>`;}).join('')||'<p class="kick">Sin fechas por ahora</p>';
   filters($('#photoFilter'),photoF,v=>photoF=v);
-  $('#photoGrid').innerHTML=curPhotos().filter(p=>photoF==='all'||String(p.entrega)===photoF).map(photoCard).join('')||'<p class="kick">Aún no hay fotos</p>';
+  $('#photoGrid').innerHTML=curPhotos().filter(p=>photoF==='all'||String(p.entrega)===photoF).map(p=>photoCard(p)).join('')||'<p class="kick">Aún no hay fotos</p>';
 }
 let activeTab='inicio';
 const GEN_ICON='<path d="M22 10L12 5 2 10l10 5 10-5zM6 12v5c3 2 9 2 12 0v-5"/>';
@@ -1147,8 +1150,8 @@ function renderGen(n){
   const g=db.gens.find(x=>x.n===n), cs=cuadernos(n), ps=db.photos.filter(x=>x.gen===n);
   $('#genTitle').textContent='Generación '+n; $('#genKick').textContent=g.year+' · Archivo';
   $('#gN').textContent=cs.length+(cs.length===1?' cuaderno':' cuadernos'); $('#gF').textContent=ps.length+' fotos';
-  $('#genNotes').innerHTML=cs.slice().sort((a,b)=>b.entrega-a.entrega).map(r=>cuadRow(r,true)).join('')||'<p class="kick">Sin cuadernos</p>';
-  $('#genPhotos').innerHTML=ps.map(photoCard).join('')||'<p class="kick">Sin fotos</p>';
+  $('#genNotes').innerHTML=cs.slice().sort((a,b)=>a.entrega-b.entrega).map(r=>cuadRow(r,true)).join('')||'<p class="kick">Sin cuadernos</p>';
+  $('#genPhotos').innerHTML=ps.map(p=>photoCard(p)).join('')||'<p class="kick">Sin fotos</p>';
 }
 function toast(msg){let el=$('#toast');if(!el){el=document.createElement('div');el.id='toast';el.className='toast';document.body.appendChild(el);}
   el.textContent=msg;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),2400);}
@@ -1211,6 +1214,8 @@ $('#tabs').onclick=e=>{const b=e.target.closest('.tab'); if(b) go(b.dataset.tab)
 document.addEventListener('click',e=>{
   const g=e.target.closest('[data-go]'); if(g) go(g.dataset.go);
   const dl=e.target.closest('[data-dl]'); if(dl){const r=rc.items.find(x=>x.id===dl.dataset.dl);if(r)rcDownload(r);return;}
+  const vw=e.target.closest('[data-view]'); if(vw){const r=rc.items.find(x=>x.id===vw.dataset.view);if(r&&r.file)rcView(r);return;}
+  const pd=e.target.closest('[data-phdl]'); if(pd){const p=db.photos.find(x=>String(x.id)===pd.dataset.phdl);if(p)phDownload(p);return;}
   const cb=e.target.closest('[data-cover]'); if(cb){coverFor=+cb.dataset.cover;$('#coverFile').click();return;}
   const ub=e.target.closest('[data-uncover]'); if(ub){removeCover(+ub.dataset.uncover);return;}
   const fo=e.target.closest('[data-fold]'); if(fo){openEnt=+fo.dataset.fold;render();$('#main').scrollTop=0;return;}
@@ -1220,10 +1225,10 @@ document.addEventListener('click',e=>{
   const p=e.target.closest('.photo');
   if(p){const it=db.photos.find(x=>String(x.id)===p.dataset.id);
     $('#lbBig').style.background=it.bg||'#444';
-    $('#lbBig').innerHTML=(it.url?`<img src="${it.url}" alt="">`:'')+`<span><b>${esc(it.titulo)}</b><br>Entrega ${it.entrega}${it.nombres&&it.nombres.length?'<br>Con: '+it.nombres.map(esc).join(' · '):''}</span>`;
+    $('#lbBig').innerHTML=(it.url?`<img src="${it.url}" alt="">`:'')+`<span><b>${esc(it.titulo)}</b><br>Entrega ${it.entrega}${it.nombres&&it.nombres.length?'<br>Con: '+it.nombres.map(esc).join(' · '):''}${it.path?`<br><button type="button" class="btn red" data-phdl="${it.id}" style="margin-top:10px">Descargar</button>`:''}</span>`;
     $('#lb').classList.add('on');}
 });
-$('#lb').onclick=()=>$('#lb').classList.remove('on');
+$('#lb').onclick=e=>{if(e.target.closest('[data-phdl]'))return;$('#lb').classList.remove('on');};
 /* fechas importantes: viven en Supabase (tabla fechas), las ven todos los miembros */
 let fechas=[],openG=null;   /* openG: entregas desplegadas (se conserva al volver a pintar) */
 $('#dates').addEventListener('toggle',e=>{const k=e.target.dataset&&e.target.dataset.k;if(k===undefined||!openG)return;e.target.open?openG.add(k):openG.delete(k);},true);
@@ -1681,6 +1686,22 @@ const kb=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024)
 const safeUrl=u=>{u=(u||'').trim();return u?(/^https?:\/\//i.test(u)?u:'https://'+u):'';};
 const fileKey=n=>n.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w.\-]+/g,'_').slice(-80);
 const IC={notas:'<path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6zM6 3v18M10 8h6M10 12h6M10 16h3"/>',plantilla:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>',ejercicio:'<path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/>'};
+/* "Ver": abre el archivo en otra pestaña (se baja con la sesión del miembro y se muestra desde el navegador) */
+async function rcView(r){
+  const w=window.open('','_blank');   /* se abre ya, para que el navegador no lo bloquee */
+  if(w)w.opener=null;
+  const {data,error}=await sb.storage.from('recursos').download(r.file.path);
+  if(error){if(w)w.close();toast('No se pudo abrir el archivo');return;}
+  const u=URL.createObjectURL(new Blob([data],{type:r.file.type||data.type||'application/pdf'}));
+  if(w)w.location.href=u;else location.href=u;
+  setTimeout(()=>URL.revokeObjectURL(u),120000);
+}
+async function phDownload(p){
+  const nombre=((p.titulo||'foto').replace(/[^\w\- ]+/g,'').trim().slice(0,60)||'foto')+'.jpg';
+  const {data,error}=await sb.storage.from('galeria').createSignedUrl(p.path,120,{download:nombre});
+  if(error){toast('No se pudo descargar la foto');return;}
+  const a=document.createElement('a');a.href=data.signedUrl;a.download=nombre;document.body.appendChild(a);a.click();a.remove();
+}
 async function rcDownload(r){
   const {data,error}=await sb.storage.from('recursos').createSignedUrl(r.file.path,120,{download:r.file.name});
   if(error){toast('No se pudo descargar el archivo');return;}
