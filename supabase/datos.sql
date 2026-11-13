@@ -2,9 +2,11 @@
 -- ORDEN: schema.sql → password_reset.sql → fechas.sql → este archivo. Se puede volver a correr sin perder datos.
 --
 -- Quién ve qué:
---   generaciones, fotos, recursos → los ven todos los miembros; fotos y recursos los gestiona un admin.
---   notas, apuntes, plan_acciones  → privados: cada quien ve, edita y borra solo lo suyo.
---   Storage (galeria, recursos)          → buckets privados: leen los miembros, escriben los admin.
+--   generaciones, fotos, recursos → los ven todos los miembros.
+--   Fotos: las sube cualquier miembro (cada quien edita/borra las suyas; el admin, todas).
+--   Recursos: los gestiona el admin; los de tipo 'notas' son el cuaderno de cada entrega y salen en la pestaña Notas.
+--   apuntes, plan_acciones  → privados: cada quien ve, edita y borra solo lo suyo.
+--   Storage (galeria, recursos) → buckets privados: leen los miembros; en recursos escribe el admin y en galeria cada miembro su carpeta.
 
 create or replace function public.is_member() returns boolean
 language sql security definer stable set search_path = public as $$
@@ -46,41 +48,6 @@ language sql security definer stable set search_path = public as $$
 $$;
 revoke execute on function public.nombres_miembros() from public, anon;
 
--- ---------- notas (PRIVADAS: cada quien solo ve las suyas) ----------
-create table if not exists public.notas (
-  id       bigint generated always as identity primary key,
-  gen      int  not null references public.generaciones(n),
-  entrega  int  not null check (entrega between 1 and 12),
-  titulo   text not null,
-  texto    text not null default '',
-  autor    text not null default '',
-  autor_id uuid references auth.users(id) on delete set null,
-  fecha    date not null default current_date,
-  creado   timestamptz not null default now()
-);
-create index if not exists notas_gen on public.notas (gen, entrega);
-alter table public.notas enable row level security;
-
--- el autor lo pone la base (no el navegador), para que nadie firme con otro nombre
-create or replace function public.notas_autor() returns trigger
-language plpgsql security definer set search_path = public as $$
-begin
-  new.autor_id := auth.uid();
-  new.autor := coalesce((select nombre from public.profiles where id = auth.uid()), '');
-  return new;
-end $$;
-revoke execute on function public.notas_autor() from public, anon, authenticated;
-drop trigger if exists notas_autor on public.notas;
-create trigger notas_autor before insert on public.notas for each row execute function public.notas_autor();
-
-drop policy if exists "miembros ven notas" on public.notas;
-drop policy if exists "miembros publican"  on public.notas;
-drop policy if exists "admin edita notas"  on public.notas;
-drop policy if exists "admin borra notas"  on public.notas;
-drop policy if exists "notas propias"      on public.notas;
-create policy "notas propias" on public.notas for all to authenticated
-  using (autor_id = auth.uid() and public.is_member()) with check (autor_id = auth.uid() and public.is_member());
-
 -- ---------- galería (compartida; archivos en el bucket 'galeria') ----------
 create table if not exists public.fotos (
   id      bigint generated always as identity primary key,
@@ -89,6 +56,7 @@ create table if not exists public.fotos (
   titulo  text not null default 'Foto',
   nombres text[] not null default '{}',
   path    text not null,
+  autor_id uuid default auth.uid() references auth.users(id) on delete set null,
   creado  timestamptz not null default now()
 );
 create index if not exists fotos_gen on public.fotos (gen, entrega);
@@ -97,12 +65,19 @@ drop policy if exists "miembros ven fotos" on public.fotos;
 drop policy if exists "admin edita fotos"  on public.fotos;
 create policy "miembros ven fotos" on public.fotos for select to authenticated using (public.is_member());
 create policy "admin edita fotos"  on public.fotos for all    to authenticated using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "miembros suben fotos" on public.fotos;
+drop policy if exists "autor edita fotos"    on public.fotos;
+drop policy if exists "autor borra fotos"    on public.fotos;
+create policy "miembros suben fotos" on public.fotos for insert to authenticated with check (public.is_member() and autor_id = auth.uid());
+create policy "autor edita fotos"    on public.fotos for update to authenticated using (autor_id = auth.uid() and public.is_member()) with check (autor_id = auth.uid());
+create policy "autor borra fotos"    on public.fotos for delete to authenticated using (autor_id = auth.uid() and public.is_member());
 
 -- ---------- plantillas y ejercicios (compartidos; archivos en el bucket 'recursos') ----------
 create table if not exists public.recursos (
   id        uuid primary key default gen_random_uuid(),
-  tipo      text not null check (tipo in ('plantilla','ejercicio')),
+  tipo      text not null check (tipo in ('plantilla','ejercicio','notas')),
   entrega   int  check (entrega between 1 and 12),
+  gen       int  references public.generaciones(n),   -- solo para el tipo 'notas'
   titulo    text not null,
   descr     text not null default '',
   url       text not null default '',
@@ -171,15 +146,19 @@ drop policy if exists "miembros leen galeria"  on storage.objects;
 drop policy if exists "admin sube galeria"     on storage.objects;
 drop policy if exists "admin edita galeria"    on storage.objects;
 drop policy if exists "admin borra galeria"    on storage.objects;
+drop policy if exists "suben galeria"          on storage.objects;
+drop policy if exists "editan galeria"         on storage.objects;
+drop policy if exists "borran galeria"         on storage.objects;
 drop policy if exists "miembros leen recursos" on storage.objects;
 drop policy if exists "admin sube recursos"    on storage.objects;
 drop policy if exists "admin edita recursos"   on storage.objects;
 drop policy if exists "admin borra recursos"   on storage.objects;
 
 create policy "miembros leen galeria" on storage.objects for select to authenticated using (bucket_id = 'galeria' and public.is_member());
-create policy "admin sube galeria"    on storage.objects for insert to authenticated with check (bucket_id = 'galeria' and public.is_admin());
-create policy "admin edita galeria"   on storage.objects for update to authenticated using (bucket_id = 'galeria' and public.is_admin());
-create policy "admin borra galeria"   on storage.objects for delete to authenticated using (bucket_id = 'galeria' and public.is_admin());
+-- galería: cada miembro sube a su carpeta (<su id>/archivo.jpg); el admin, a cualquiera
+create policy "suben galeria"  on storage.objects for insert to authenticated with check (bucket_id = 'galeria' and (public.is_admin() or (public.is_member() and (storage.foldername(name))[1] = auth.uid()::text)));
+create policy "editan galeria" on storage.objects for update to authenticated using (bucket_id = 'galeria' and (public.is_admin() or (public.is_member() and (storage.foldername(name))[1] = auth.uid()::text)));
+create policy "borran galeria" on storage.objects for delete to authenticated using (bucket_id = 'galeria' and (public.is_admin() or (public.is_member() and (storage.foldername(name))[1] = auth.uid()::text)));
 
 create policy "miembros leen recursos" on storage.objects for select to authenticated using (bucket_id = 'recursos' and public.is_member());
 create policy "admin sube recursos"    on storage.objects for insert to authenticated with check (bucket_id = 'recursos' and public.is_admin());

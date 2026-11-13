@@ -572,6 +572,13 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 .rcard:hover{transform:translateY(-3px);box-shadow:0 0 0 1px rgba(209,15,31,.4),var(--hi),0 18px 34px -18px rgba(18,20,30,.45)}
 .rc-head{display:flex;gap:12px;align-items:flex-start}
 .rc-ico{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(160deg,#2c2d33,#0b0b0d);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.cuad{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.95);border:1px solid #e6e8ec}
+.cuad .tx{flex:1;min-width:0}
+.cuad .tx b{display:block;font-size:14.5px}
+.cuad .tx p{font-size:13px;color:#4a4d55;margin:2px 0 0}
+.cuad .tx small{display:block;color:#8d929d;font-size:12px;margin-top:2px;overflow-wrap:anywhere}
+.cuad .btn{flex:none}
+@media(max-width:560px){.cuad{flex-wrap:wrap}.cuad .btn{width:100%}}
 .rc-ico.ejercicio{background:linear-gradient(160deg,#e23048,#8f0914)}
 .rc-ico .i{width:22px;height:22px}
 .rc-head b{display:block;font:700 15px/1.3 "Montserrat",sans-serif;margin-top:4px;overflow-wrap:anywhere}
@@ -746,9 +753,8 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
       <section class="view on" id="v-inicio">
         <div class="hrow">
           <div><h1>Hola, <span id="meFirst">…</span></h1><div class="kick">Portal de miembros · Mastermind</div></div>
-          <div style="display:flex;gap:8px"><span class="chip" id="sN">0 notas</span><span class="chip" id="sF">0 fotos</span></div>
+          <div style="display:flex;gap:8px"><span class="chip" id="sN">0 cuadernos</span><span class="chip" id="sF">0 fotos</span></div>
         </div>
-        <div class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="q" placeholder="Buscar en notas y entregas…"></div>
         <h2 class="sec caps"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>Fechas importantes</h2>
         <form class="panel admin-only dform" id="dateForm">
           <div><label for="dFecha">Fecha</label><input class="f" type="date" id="dFecha" required></div>
@@ -757,27 +763,13 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
           <button class="btn red" type="submit">Agregar fecha</button>
         </form>
         <div class="dates" id="dates"></div>
-        <p class="demo">Prototipo con datos de ejemplo · sin conexión a Firebase</p>
       </section>
 
       <!-- NOTAS -->
       <section class="view" id="v-notas">
-        <h1>Notas y resúmenes</h1><div class="kick">Lo aprendido en cada entrega</div>
-        <div class="panel" style="margin-top:18px">
-          <form id="noteForm">
-            <div class="two">
-              <div><label>Entrega</label><select id="nEntrega"></select></div>
-              <div><label>Título</label><input class="f" id="nTitulo" required placeholder="Ej. 3 ideas clave de la sesión"></div>
-            </div>
-            <div><label>Resumen / notas</label><textarea id="nTexto" required placeholder="Aprendizajes, acuerdos y tareas…"></textarea></div>
-            <div style="display:flex;gap:8px"><button class="btn red" type="submit" id="nSubmit">Publicar nota</button><button type="button" class="btn" id="nCancel" hidden>Cancelar</button></div>
-          </form>
-        </div>
+        <h1>Notas</h1><div class="kick">El cuaderno de cada entrega y las fotos del grupo</div>
         <h2 class="sec caps"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg>Entregas</h2>
-        <div class="rows" id="homeEntregas"></div>
-        <h2 class="sec caps" id="noteListTitle"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/></svg>Notas<button type="button" class="btn" id="dlOpen"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Descargar</button></h2>
-        <div class="filters" id="noteFilter"></div>
-        <div class="rows" id="noteList"></div>
+        <div class="rows" id="entList"></div>
       </section>
 
       <!-- APUNTES (cuaderno) -->
@@ -867,7 +859,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
         <div class="panel admin-only" style="margin-top:18px">
           <form id="rcForm" class="rc-form">
             <div class="rc-top">
-              <div><label for="rcTipo">Tipo</label><select id="rcTipo"><option value="plantilla">Plantilla</option><option value="ejercicio">Ejercicio</option></select></div>
+              <div><label for="rcTipo">Tipo</label><select id="rcTipo"><option value="plantilla">Plantilla</option><option value="ejercicio">Ejercicio</option><option value="notas">Notas (cuaderno de la entrega)</option></select></div>
               <div><label for="rcEntrega">Entrega</label><select id="rcEntrega"></select></div>
               <div class="rc-w"><label for="rcTitulo">Título</label><input class="f" id="rcTitulo" required maxlength="100" placeholder="Ej. Plantilla de oferta irresistible" autocomplete="off"></div>
             </div>
@@ -899,8 +891,8 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
       <!-- GALERIA -->
       <section class="view" id="v-galeria">
         <h1>Galería</h1><div class="kick">Momentos de cada entrega</div>
-        <label class="drop admin-only" for="file"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Subir fotos<input id="file" type="file" accept="image/*" multiple hidden></label>
-        <div class="panel admin-only" id="phPanel" hidden>
+        <label class="drop" for="file"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Subir fotos<input id="file" type="file" accept="image/*" multiple hidden></label>
+        <div class="panel" id="phPanel" hidden>
           <div class="ph-head"><b id="phTitle">Nuevas fotos</b><label class="ph-ent">Entrega <select id="phEntrega"></select></label></div>
           <div class="kick" style="margin:6px 0 8px">Escribe quién sale en cada foto o toca un nombre para agregarlo a la foto seleccionada</div>
           <div class="mchips" id="phChips"></div>
@@ -917,22 +909,13 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
           <div><h1 id="genTitle">Generación</h1><div class="kick" id="genKick"></div></div>
           <div style="display:flex;gap:8px"><span class="chip" id="gN">0 notas</span><span class="chip" id="gF">0 fotos</span></div>
         </div>
-        <h2 class="sec caps"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/></svg>Notas y resúmenes</h2>
+        <h2 class="sec caps"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/></svg>Cuadernos de notas</h2>
         <div class="rows" id="genNotes"></div>
         <h2 class="sec caps"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>Galería</h2>
         <div class="grid" id="genPhotos"></div>
       </section>
     </main>
 
-  </div>
-</div>
-<div class="modal" id="dlModal" hidden>
-  <div class="mcard" role="dialog" aria-labelledby="dlT">
-    <b id="dlT" style="font-size:17px">Descargar notas</b>
-    <p class="kick" style="margin:4px 0 10px;text-transform:none;letter-spacing:0;font-size:13px">Elige los temas que quieres en un solo archivo.</p>
-    <label style="display:flex;gap:8px;align-items:center;font-weight:700;margin-bottom:6px"><input type="checkbox" id="dlAll"> Seleccionar todos</label>
-    <div id="dlList" style="display:grid;gap:6px;max-height:50vh;overflow:auto;margin-bottom:12px"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn red" id="dlGo">Descargar</button><button type="button" class="btn" id="dlClose">Cerrar</button></div>
   </div>
 </div>
 <div class="modal" id="apDlModal" hidden>
@@ -1040,7 +1023,7 @@ const TABS = [
 ];
 
 /* ---------- Datos: todo vive en Supabase (esquema en supabase/datos.sql). Aquí solo se guarda lo ya cargado. ---------- */
-let db={currentGen:4,gens:[{n:4,year:2026}],members:[],notes:[],photos:[]}, noteF='all', photoF='all', query='';
+let db={currentGen:4,gens:[{n:4,year:2026}],members:[],photos:[]}, photoF='all', openE=new Set();   /* openE: entregas desplegadas en Notas */
 async function loadGens(){
   const {data,error}=await sb.from('generaciones').select('*').order('n');
   if(error){toast('No se pudieron cargar las generaciones');return;}
@@ -1048,13 +1031,8 @@ async function loadGens(){
   db.gens=data.map(g=>({n:g.n,year:g.anio,closed:g.cerrada}));
   db.currentGen=(data.find(g=>g.actual)||data[data.length-1]).n;
 }
-async function loadNotas(){
-  const {data,error}=await sb.from('notas').select('id,gen,entrega,titulo,texto,autor,fecha').order('id');
-  if(error){toast('No se pudieron cargar las notas');return;}
-  db.notes=data;
-}
 async function loadFotos(){
-  const {data,error}=await sb.from('fotos').select('id,gen,entrega,titulo,nombres,path').order('id',{ascending:false});
+  const {data,error}=await sb.from('fotos').select('id,gen,entrega,titulo,nombres,path,autor_id').order('id',{ascending:false});
   if(error){toast('No se pudieron cargar las fotos');return;}
   /* el bucket es privado: cada foto se ve con un enlace firmado que caduca (12 h) */
   const signed=data.length?((await sb.storage.from('galeria').createSignedUrls(data.map(p=>p.path),43200)).data||[]):[];
@@ -1068,7 +1046,7 @@ async function loadMembers(){
 }
 async function loadAll(){
   await loadGens();   /* primero: las demás cargas se pintan según la generación actual */
-  await Promise.all([loadNotas(),loadFotos(),plLoad(),rcLoad(),apLoad(),ME.rol==='admin'?loadMembers():null,loadFechas()]);
+  await Promise.all([loadFotos(),plLoad(),rcLoad(),apLoad(),loadMembers(),loadFechas()]);
   renderTabs();render();plRender();apEnsure();
   /* al recargar vuelve a la pestaña donde estabas (solo si sigue existiendo y puedes verla) */
   let t=null;try{t=localStorage.getItem('mas-tab');}catch(e){}
@@ -1079,26 +1057,28 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt=d=>new Date(d+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'short'});
 const cur=()=>db.currentGen;
-const curNotes=()=>db.notes.filter(n=>n.gen===cur()), curPhotos=()=>db.photos.filter(p=>p.gen===cur());
-const entregas=()=>[...new Set([1,2,3,4,5,...curNotes().map(n=>n.entrega),...curPhotos().map(p=>p.entrega)])].sort((a,b)=>b-a);
+const curPhotos=()=>db.photos.filter(p=>p.gen===cur());
+const cuadernos=g=>rc.items.filter(r=>r.tipo==='notas'&&r.gen===g&&r.entrega);   /* el cuaderno de cada entrega: un recurso de tipo notas */
+const entregas=()=>[...new Set([1,2,3,4,5,...cuadernos(cur()).map(r=>r.entrega),...curPhotos().map(p=>p.entrega)])].sort((a,b)=>b-a);
 const chev='<svg class="i chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
 
-const noteRow=n=>`<div class="row" onclick="this.classList.toggle('open')"><div class="ico">E${n.entrega}</div><div class="tx"><b>${esc(n.titulo)}</b><p>${esc(n.texto)}</p><p style="margin-top:2px"><span class="tag">Entrega ${n.entrega}</span>${esc(n.autor)} · ${fmt(n.fecha)}</p></div><span class="nctl"><button type="button" onclick="event.stopPropagation();noteAct(${n.id},'edit')" title="Editar nota" aria-label="Editar nota"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button><button type="button" onclick="event.stopPropagation();noteAct(${n.id},'del')" title="Eliminar nota" aria-label="Eliminar nota"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></span>${chev}</div>`;
+const rcAct=r=>r.file?`<button type="button" class="btn red" data-dl="${r.id}">Descargar</button>`:r.url?`<a class="btn red" href="${esc(r.url)}" target="_blank" rel="noopener">Abrir enlace</a>`:'<span class="rc-pend">Archivo próximamente</span>';
+const cuadRow=(r,tag)=>`<div class="cuad"><div class="rc-ico notas"><svg class="i" viewBox="0 0 24 24">${IC.notas}</svg></div><div class="tx"><b>${esc(r.titulo)}</b>${tag?`<span class="tag">Entrega ${r.entrega}</span>`:''}${r.desc?`<p>${esc(r.desc)}</p>`:''}${r.file?`<small>${esc(r.file.name)} · ${kb(r.file.size)}</small>`:''}</div>${rcAct(r)}</div>`;
+const canEdit=p=>ME&&(ME.rol==='admin'||p.autor_id===ME.id);   /* cada quien edita sus fotos; el admin, todas */
 const ICON_USER='<svg class="i" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>';
 const whoHTML=p=>p.nombres&&p.nombres.length?`<figcaption class="who">${ICON_USER}<span>${p.nombres.map(esc).join(' · ')}</span></figcaption>`:'<figcaption class="who none admin-only">Sin nombres</figcaption>';
-const photoCard=p=>`<figure class="pcard"><div class="photo" style="background:${p.bg||'#444'}" data-id="${p.id}">${p.url?`<img src="${p.url}" alt="${esc(p.titulo)}">`:''}<span>${esc(p.titulo)}</span><div class="pctl admin-only"><button type="button" data-pa="edit" title="Editar nombres" aria-label="Editar nombres"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button><button type="button" data-pa="del" title="Eliminar foto" aria-label="Eliminar foto"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div></div>${whoHTML(p)}</figure>`;
+const photoCard=p=>`<figure class="pcard"><div class="photo" style="background:${p.bg||'#444'}" data-id="${p.id}">${p.url?`<img src="${p.url}" alt="${esc(p.titulo)}">`:''}<span>${esc(p.titulo)}</span>${canEdit(p)?'<div class="pctl"><button type="button" data-pa="edit" title="Editar nombres" aria-label="Editar nombres"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button><button type="button" data-pa="del" title="Eliminar foto" aria-label="Eliminar foto"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div>':''}</div>${whoHTML(p)}</figure>`;
 function filters(el,cur,set){
   el.innerHTML=[['all','Todas'],...entregas().map(e=>[String(e),'Entrega '+e])].map(([v,l])=>`<button class="chip ${cur===v?'on':''}" data-v="${v}">${l}</button>`).join('');
   el.onclick=e=>{const v=e.target.dataset.v; if(v){set(v);render();}};
 }
 function render(){
-  $('#sN').textContent=curNotes().length+' notas'; $('#sF').textContent=curPhotos().length+' fotos';
+  const nc=cuadernos(cur()).length;$('#sN').textContent=nc+(nc===1?' cuaderno':' cuadernos'); $('#sF').textContent=curPhotos().length+' fotos';
   const g=db.gens.find(x=>x.n===cur());
   $('#genText').textContent=g.n+'ª GENERACIÓN';
-  const qn=curNotes().filter(n=>!query||(n.titulo+n.texto+n.autor).toLowerCase().includes(query));
-  $('#homeEntregas').innerHTML=entregas().slice(0,5).map(e=>{
-    const nn=curNotes().filter(n=>n.entrega===e).length, pp=curPhotos().filter(p=>p.entrega===e).length;
-    return `<div class="row" data-ent="${e}"><div class="ico">${e}</div><div class="tx"><b>Entrega ${e}</b><p>${nn} ${nn===1?'nota':'notas'} · ${pp} ${pp===1?'foto':'fotos'}</p></div>${chev}</div>`;}).join('');
+  $('#entList').innerHTML=entregas().map(e=>{
+    const cs=cuadernos(cur()).filter(r=>r.entrega===e),ps=curPhotos().filter(p=>p.entrega===e);
+    return `<details class="egrp" data-e="${e}" ${openE.has(e)?'open':''}><summary class="row"><div class="ico">${e}</div><div class="tx"><b>Entrega ${e}</b><p>${cs.length} ${cs.length===1?'cuaderno':'cuadernos'} · ${ps.length} ${ps.length===1?'foto':'fotos'}</p></div>${chev}</summary><div class="egb">${cs.map(r=>cuadRow(r)).join('')}${ps.length?`<div class="grid">${ps.map(photoCard).join('')}</div>`:''}${cs.length||ps.length?'':'<p class="kick">Aún no hay nada de esta entrega</p>'}</div></details>`;}).join('');
   const MES={ENE:0,FEB:1,MAR:2,ABR:3,MAY:4,JUN:5,JUL:6,AGO:7,SEP:8,OCT:9,NOV:10,DIC:11},MN=Object.keys(MES);
   const t0=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate());};
   const dateOf=x=>{if(x.f)return new Date(x.f+'T00:00');const d=new Date(t0().getFullYear(),MES[x.m],x.d);if(d<t0())d.setFullYear(d.getFullYear()+1);return d;};
@@ -1117,9 +1097,7 @@ function render(){
     const rows=r.map(({x,d})=>{const wd=d.toLocaleDateString('es-MX',{weekday:'long'}),sub=x.titulo.includes(' · ')?x.titulo.split(' · ').slice(1).join(' · '):x.titulo;
       return `<div class="date ${d<t0()?'past admin-only':''}"><div class="dd">${d.getDate()}<small>${MN[d.getMonth()]}</small></div><div class="dtx"><b>${esc(sub)}</b><span class="dlug">${wd.charAt(0).toUpperCase()+wd.slice(1)}${x.lugar?' · '+esc(x.lugar):''}</span></div><span class="when">${left(d)}</span><button type="button" class="dx admin-only" onclick="delDate('${x.id}')" aria-label="Quitar fecha" title="Quitar fecha"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`;}).join('');
     return `<details class="egrp ${nxt?'':'past admin-only'}" data-k="${esc(k)}" ${openG.has(k)?'open':''}><summary class="date"><div class="dd egd">${dd(r)}<small>${MN[r[0].d.getMonth()]}</small></div><div class="dtx"><b>${esc(k)}</b><span class="dlug">${wr(r)}${lug?' · '+esc(lug):''}</span></div><span class="when">${nxt?left(nxt.d):'Terminada'}</span>${chev}</summary><div class="egb">${rows}</div></details>`;}).join('')||'<p class="kick">Sin fechas por ahora</p>';
-  $('#nEntrega').innerHTML=entregas().map(e=>`<option>${e}</option>`).join('');
-  filters($('#noteFilter'),noteF,v=>noteF=v); filters($('#photoFilter'),photoF,v=>photoF=v);
-  $('#noteList').innerHTML=qn.filter(n=>noteF==='all'||String(n.entrega)===noteF).sort((a,b)=>b.id-a.id).map(noteRow).join('')||'<p class="kick">Aún no hay notas</p>';
+  filters($('#photoFilter'),photoF,v=>photoF=v);
   $('#photoGrid').innerHTML=curPhotos().filter(p=>photoF==='all'||String(p.entrega)===photoF).map(photoCard).join('')||'<p class="kick">Aún no hay fotos</p>';
 }
 let activeTab='inicio';
@@ -1129,39 +1107,14 @@ function renderTabs(){
   $('#tabs').innerHTML=all.map(t=>`<button class="tab ${t.id===activeTab?'on':''} ${t.admin?'admin-only':''}" data-tab="${t.id}"><svg class="i" viewBox="0 0 24 24">${t.icon}</svg><span class="lb-f">${t.label}</span><span class="lb-s">${t.short||t.label}</span></button>`).join('');
 }
 function renderGen(n){
-  const g=db.gens.find(x=>x.n===n), ns=db.notes.filter(x=>x.gen===n), ps=db.photos.filter(x=>x.gen===n);
+  const g=db.gens.find(x=>x.n===n), cs=cuadernos(n), ps=db.photos.filter(x=>x.gen===n);
   $('#genTitle').textContent='Generación '+n; $('#genKick').textContent=g.year+' · Archivo';
-  $('#gN').textContent=ns.length+' notas'; $('#gF').textContent=ps.length+' fotos';
-  $('#genNotes').innerHTML=ns.sort((a,b)=>b.entrega-a.entrega).map(noteRow).join('')||'<p class="kick">Sin notas</p>';
+  $('#gN').textContent=cs.length+(cs.length===1?' cuaderno':' cuadernos'); $('#gF').textContent=ps.length+' fotos';
+  $('#genNotes').innerHTML=cs.slice().sort((a,b)=>b.entrega-a.entrega).map(r=>cuadRow(r,true)).join('')||'<p class="kick">Sin cuadernos</p>';
   $('#genPhotos').innerHTML=ps.map(photoCard).join('')||'<p class="kick">Sin fotos</p>';
 }
 function toast(msg){let el=$('#toast');if(!el){el=document.createElement('div');el.id='toast';el.className='toast';document.body.appendChild(el);}
   el.textContent=msg;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),2400);}
-/* ---------- Descargar notas seleccionadas en un solo archivo ---------- */
-(function(){
-  const m=$('#dlModal'),list=$('#dlList'),all=$('#dlAll');
-  const sorted=()=>curNotes().slice().sort((a,b)=>a.entrega-b.entrega||a.id-b.id);
-  const sync=()=>{const c=[...list.querySelectorAll('input')];all.checked=c.length>0&&c.every(i=>i.checked);};
-  $('#dlOpen').onclick=()=>{
-    const ns=sorted();
-    if(!ns.length){toast('Aún no hay notas para descargar');return;}
-    list.innerHTML=ns.map(n=>`<label style="display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card)"><input type="checkbox" value="${n.id}"><span><b>${esc(n.titulo)}</b> <span class="tag">Entrega ${n.entrega}</span></span></label>`).join('');
-    all.checked=false;m.hidden=false;};
-  all.onchange=()=>list.querySelectorAll('input').forEach(i=>i.checked=all.checked);
-  list.onchange=sync;
-  $('#dlClose').onclick=()=>{m.hidden=true;};
-  m.addEventListener('click',e=>{if(e.target===m)m.hidden=true;});
-  $('#dlGo').onclick=()=>{
-    const ids=[...list.querySelectorAll('input:checked')].map(i=>+i.value);
-    if(!ids.length){toast('Selecciona al menos un tema');return;}
-    const ns=sorted().filter(n=>ids.includes(n.id));
-    const txt=ns.map(n=>n.titulo+'\nEntrega '+n.entrega+' · '+(n.autor||'')+' · '+n.fecha+'\n\n'+n.texto).join('\n\n----------------------------------------\n\n')+'\n';
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(new Blob(['\ufeff'+txt],{type:'text/plain;charset=utf-8'}));
-    a.download='notas-MAS.txt';document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    m.hidden=true;toast(ns.length+(ns.length===1?' nota descargada':' notas descargadas'));};
-})();
 /* ---------- Descargar apuntes seleccionados en un solo archivo ---------- */
 (function(){
   const m=$('#apDlModal'),list=$('#apDlList'),all=$('#apDlAll');
@@ -1213,13 +1166,13 @@ $('#genLabel').onclick=async()=>{
   const known=db.gens.find(x=>x.n===n);
   const {error}=await sb.rpc('set_generacion_actual',{p_n:n,p_anio:known?known.year:g.year+(n-g.n)});
   if(error){toast('No se pudo cambiar la generación');return;}
-  noteF=photoF='all'; await loadAll();
+  photoF='all'; await loadAll();
 };
 renderTabs();
 $('#tabs').onclick=e=>{const b=e.target.closest('.tab'); if(b) go(b.dataset.tab);};
 document.addEventListener('click',e=>{
   const g=e.target.closest('[data-go]'); if(g) go(g.dataset.go);
-  const en=e.target.closest('[data-ent]'); if(en){noteF=photoF=en.dataset.ent; render(); $('#noteListTitle').scrollIntoView({behavior:'smooth'});}
+  const dl=e.target.closest('[data-dl]'); if(dl){const r=rc.items.find(x=>x.id===dl.dataset.dl);if(r)rcDownload(r);return;}
   const pa=e.target.closest('[data-pa]');
   if(pa){e.stopPropagation();phAction(pa.dataset.pa,pa.closest('.photo').dataset.id);return;}
   const p=e.target.closest('.photo');
@@ -1229,36 +1182,9 @@ document.addEventListener('click',e=>{
     $('#lb').classList.add('on');}
 });
 $('#lb').onclick=()=>$('#lb').classList.remove('on');
-$('#q').oninput=e=>{query=e.target.value.toLowerCase(); render();};
-let editNote=null;
-function noteReset(){editNote=null;$('#noteForm').reset();$('#nSubmit').textContent='Publicar nota';$('#nCancel').hidden=true;}
-$('#nCancel').onclick=noteReset;
-async function noteAct(id,a){
-  const n=db.notes.find(x=>x.id===id);if(!n)return;
-  if(a==='del'){if(!confirm('¿Eliminar esta nota?'))return;
-    const {error}=await sb.from('notas').delete().eq('id',id);
-    if(error){toast('No se pudo eliminar la nota');return;}
-    db.notes=db.notes.filter(x=>x!==n);if(editNote===id)noteReset();render();toast('Nota eliminada');return;}
-  editNote=id;render();$('#nEntrega').value=n.entrega;$('#nTitulo').value=n.titulo;$('#nTexto').value=n.texto;
-  $('#nSubmit').textContent='Guardar cambios';$('#nCancel').hidden=false;$('#nTitulo').scrollIntoView({behavior:'smooth',block:'center'});$('#nTitulo').focus();
-}
-$('#noteForm').onsubmit=async e=>{e.preventDefault();
-  const btn=$('#nSubmit');if(btn.disabled)return;
-  const v={entrega:+$('#nEntrega').value,titulo:$('#nTitulo').value.trim(),texto:$('#nTexto').value.trim()};
-  btn.disabled=true;
-  try{
-    if(editNote){
-      const {error}=await sb.from('notas').update(v).eq('id',editNote);if(error)throw error;
-      Object.assign(db.notes.find(x=>x.id===editNote),v);noteReset();render();toast('Cambios guardados');return;}
-    /* el autor y la fecha los pone la base de datos */
-    const {data,error}=await sb.from('notas').insert({gen:cur(),...v}).select('id,gen,entrega,titulo,texto,autor,fecha').single();
-    if(error)throw error;
-    db.notes.push(data);noteReset();render();toast('Nota publicada');
-  }catch(err){console.error(err);toast('No se pudo guardar la nota');}
-  finally{btn.disabled=false;}
-};
 /* fechas importantes: viven en Supabase (tabla fechas), las ven todos los miembros */
 let fechas=[],openG=null;   /* openG: entregas desplegadas (se conserva al volver a pintar) */
+$('#entList').addEventListener('toggle',e=>{const k=+(e.target.dataset&&e.target.dataset.e);if(!k)return;e.target.open?openE.add(k):openE.delete(k);},true);
 $('#dates').addEventListener('toggle',e=>{const k=e.target.dataset&&e.target.dataset.k;if(k===undefined||!openG)return;e.target.open?openG.add(k):openG.delete(k);},true);
 async function loadFechas(){const {data,error}=await sb.from('fechas').select('*').order('fecha');if(error){toast('No se pudieron cargar las fechas');return;}fechas=data;render();}
 $('#dateForm').onsubmit=async e=>{e.preventDefault();
@@ -1266,7 +1192,7 @@ $('#dateForm').onsubmit=async e=>{e.preventDefault();
   if(error){toast('No se pudo agregar la fecha');return;}
   fechas.push(data);$('#dTexto').value='';$('#dLugar').value='';render();toast('Fecha agregada');};
 async function delDate(id){const {error}=await sb.from('fechas').delete().eq('id',id);if(error){toast('No se pudo quitar la fecha');return;}fechas=fechas.filter(x=>x.id!==id);render();toast('Fecha quitada');}
-/* ---- subir fotos (solo admin) con los nombres de quienes salen ---- */
+/* ---- subir fotos (cualquier miembro): cada foto lleva su entrega y una descripción; opcional, quiénes salen ---- */
 let phItems=[],phEdit=null,phFocus=null;
 const parseNames=t=>t.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean);
 function shrink(file,max=1400){return new Promise(res=>{const u=URL.createObjectURL(file),im=new Image();
@@ -1274,19 +1200,19 @@ function shrink(file,max=1400){return new Promise(res=>{const u=URL.createObject
     c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',.82));};
   im.onerror=()=>{URL.revokeObjectURL(u);res(null);};im.src=u;});}
 function phPaint(){
-  $('#phEntrega').innerHTML=entregas().map(e=>`<option>${e}</option>`).join('');
-  if(phItems.entrega)$('#phEntrega').value=phItems.entrega;
+  $('#phEntrega').innerHTML='<option value="">Elige la entrega…</option>'+Array.from({length:12},(_,i)=>`<option>${i+1}</option>`).join('');
+  $('#phEntrega').value=phItems.entrega||'';
   $('#phChips').innerHTML=db.members.map(m=>`<button type="button" class="mchip" data-m="${esc(m)}">${esc(m)}</button>`).join('');
   $('#phList').innerHTML=phItems.map((it,i)=>`<div class="ph-item"><div class="ph-th" style="background:${it.bg||'#444'}">${it.url?`<img src="${it.url}" alt="">`:''}</div>
-    <div class="ph-f"><input class="f" data-k="titulo" data-i="${i}" value="${esc(it.titulo)}" placeholder="Título de la foto"><input class="f" data-k="nombres" data-i="${i}" value="${esc(it.nombres)}" placeholder="Quiénes salen: Ana P., Luis C."></div></div>`).join('');
+    <div class="ph-f"><input class="f" data-k="titulo" data-i="${i}" value="${esc(it.titulo)}" placeholder="Describe la foto (obligatorio)"><input class="f" data-k="nombres" data-i="${i}" value="${esc(it.nombres)}" placeholder="Quiénes salen: Ana P., Luis C."></div></div>`).join('');
 }
 function phOpen(){$('#phPanel').hidden=false;phPaint();$('#phPanel').scrollIntoView({behavior:'smooth',block:'center'});}
 function phClose(){phItems=[];phEdit=null;phFocus=null;$('#phPanel').hidden=true;$('#file').value='';}
 $('#file').onchange=async e=>{
   const files=[...e.target.files];if(!files.length)return;
-  const out=[];for(const f of files){const url=await shrink(f);if(url)out.push({url,titulo:f.name.replace(/\.\w+$/,''),nombres:''});}
+  const out=[];for(const f of files){const url=await shrink(f);if(url)out.push({url,titulo:'',nombres:''});}
   if(!out.length){toast('No se pudo leer la imagen');return;}
-  phEdit=null;phItems=out;phItems.entrega=photoF==='all'?cur()&&5:+photoF;$('#phTitle').textContent=out.length===1?'Nueva foto':'Nuevas fotos ('+out.length+')';phOpen();
+  phEdit=null;phItems=out;phItems.entrega=photoF==='all'?'':+photoF;$('#phTitle').textContent=out.length===1?'Nueva foto':'Nuevas fotos ('+out.length+')';phOpen();
 };
 $('#phList').addEventListener('input',e=>{const i=e.target.dataset.i;if(i!=null)phItems[+i][e.target.dataset.k]=e.target.value;});
 $('#phList').addEventListener('focusin',e=>{if(e.target.dataset.k==='nombres')phFocus=e.target;});
@@ -1299,20 +1225,22 @@ let phBusy=false;
 $('#phOk').onclick=async()=>{
   if(phBusy)return;
   const entrega=+$('#phEntrega').value,ed=!!phEdit,n=phItems.length,btn=$('#phOk');
+  if(!$('#phEntrega').value){toast('Elige a qué entrega pertenece');return;}
+  if(phItems.some(it=>!it.titulo.trim())){toast('Escribe una descripción de cada foto');return;}
   phBusy=true;btn.disabled=true;
   try{
     if(ed){
       const it=phItems[0],p=db.photos.find(x=>x.id===phEdit);
-      const {error}=await sb.from('fotos').update({titulo:it.titulo.trim()||p.titulo,nombres:parseNames(it.nombres),entrega}).eq('id',phEdit);
+      const {error}=await sb.from('fotos').update({titulo:it.titulo.trim(),nombres:parseNames(it.nombres),entrega}).eq('id',phEdit);
       if(error)throw error;
     }else{
       /* se suben al revés para que la primera foto quede arriba (la galería muestra lo más nuevo primero) */
       for(const it of phItems.slice().reverse()){
         const blob=await (await fetch(it.url)).blob();
-        const path=crypto.randomUUID()+'.jpg';
+        const path=ME.id+'/'+crypto.randomUUID()+'.jpg';   /* cada quien sube a su carpeta */
         const up=await sb.storage.from('galeria').upload(path,blob,{contentType:'image/jpeg'});
         if(up.error)throw up.error;
-        const {error}=await sb.from('fotos').insert({gen:cur(),entrega,titulo:it.titulo.trim()||'Foto',nombres:parseNames(it.nombres),path});
+        const {error}=await sb.from('fotos').insert({gen:cur(),entrega,titulo:it.titulo.trim(),nombres:parseNames(it.nombres),path});
         if(error){await sb.storage.from('galeria').remove([path]);throw error;}
       }
     }
@@ -1679,29 +1607,35 @@ $('#plList').addEventListener('click',async e=>{
 plRender();
 
 /* ====================== PLANTILLAS Y EJERCICIOS ======================
-   Solo los admin publican, editan y eliminan; los miembros ven y descargan.
+   Solo los admin publican, editan y eliminan; los miembros ven y descargan. Los de tipo Notas aparecen en la pestaña Notas.
    La lista vive en la tabla recursos; los archivos, en el bucket privado 'recursos' (se bajan con enlace firmado). */
 const RC_MAX=25*1024*1024;
 let rc={items:[]};
-const rcMap=r=>({id:r.id,tipo:r.tipo,entrega:r.entrega,titulo:r.titulo,desc:r.descr,url:r.url,file:r.file_path?{path:r.file_path,name:r.file_name,size:r.file_size,type:r.file_type}:null});
+const rcMap=r=>({id:r.id,gen:r.gen,tipo:r.tipo,entrega:r.entrega,titulo:r.titulo,desc:r.descr,url:r.url,file:r.file_path?{path:r.file_path,name:r.file_name,size:r.file_size,type:r.file_type}:null});
 let rcF='all',rcEdit=null,rcPending=null,rcBusy=false;
 const kb=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
 const safeUrl=u=>{u=(u||'').trim();return u?(/^https?:\/\//i.test(u)?u:'https://'+u):'';};
 const fileKey=n=>n.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w.\-]+/g,'_').slice(-80);
-const IC={plantilla:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>',ejercicio:'<path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/>'};
+const IC={notas:'<path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6zM6 3v18M10 8h6M10 12h6M10 16h3"/>',plantilla:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>',ejercicio:'<path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/>'};
+async function rcDownload(r){
+  const {data,error}=await sb.storage.from('recursos').createSignedUrl(r.file.path,120,{download:r.file.name});
+  if(error){toast('No se pudo descargar el archivo');return;}
+  const a=document.createElement('a');a.href=data.signedUrl;a.download=r.file.name;document.body.appendChild(a);a.click();a.remove();
+}
 async function rcLoad(){
   const {data,error}=await sb.from('recursos').select('*').order('creado',{ascending:false});
   if(error){toast('No se pudieron cargar los recursos');return;}
-  rc.items=data.map(rcMap);rcRender();
+  rc.items=data.map(rcMap);rcRender();render();
 }
 function rcRender(){
   $('#rcEntrega').innerHTML='<option value="">General</option>'+Array.from({length:12},(_,i)=>`<option value="${i+1}">Entrega ${i+1}</option>`).join('');
   if(rcEdit){const r=rc.items.find(x=>x.id===rcEdit);if(r)$('#rcEntrega').value=r.entrega??'';}
-  $('#rcFilter').innerHTML=[['all','Todo'],['plantilla','Plantillas'],['ejercicio','Ejercicios']].map(([v,l])=>`<button class="chip ${rcF===v?'on':''}" data-v="${v}">${l}</button>`).join('');
-  const list=rc.items.filter(r=>rcF==='all'||r.tipo===rcF);
+  const adm=ME&&ME.rol==='admin';   /* los cuadernos de notas se ven en la pestaña Notas; aquí solo los gestiona el admin */
+  $('#rcFilter').innerHTML=[['all','Todo'],['plantilla','Plantillas'],['ejercicio','Ejercicios'],...(adm?[['notas','Notas']]:[])].map(([v,l])=>`<button class="chip ${rcF===v?'on':''}" data-v="${v}">${l}</button>`).join('');
+  const list=rc.items.filter(r=>(rcF==='all'||r.tipo===rcF)&&(adm||r.tipo!=='notas'));
   $('#rcList').innerHTML=list.map(r=>{
-    const act=r.file?`<button type="button" class="btn red" data-a="dl">Descargar</button>`:r.url?`<a class="btn red" href="${esc(r.url)}" target="_blank" rel="noopener">Abrir enlace</a>`:'<span class="rc-pend">Archivo próximamente</span>';
-    return `<div class="rcard" data-id="${r.id}"><div class="rc-head"><div class="rc-ico ${r.tipo}"><svg class="i" viewBox="0 0 24 24">${IC[r.tipo]}</svg></div><div style="min-width:0"><span class="tag">${r.tipo==='plantilla'?'Plantilla':'Ejercicio'}</span>${r.entrega?`<span class="tag" style="background:#eceef2;color:#40434a">Entrega ${r.entrega}</span>`:''}<b>${esc(r.titulo)}</b></div></div>
+    const act=rcAct(r);
+    return `<div class="rcard" data-id="${r.id}"><div class="rc-head"><div class="rc-ico ${r.tipo}"><svg class="i" viewBox="0 0 24 24">${IC[r.tipo]}</svg></div><div style="min-width:0"><span class="tag">${{plantilla:'Plantilla',ejercicio:'Ejercicio',notas:'Cuaderno de notas'}[r.tipo]}</span>${r.entrega?`<span class="tag" style="background:#eceef2;color:#40434a">Entrega ${r.entrega}</span>`:''}<b>${esc(r.titulo)}</b></div></div>
       <p>${esc(r.desc||'')}</p>
       ${r.file?`<div class="rc-file2"><svg class="i" viewBox="0 0 24 24"><path d="M21 12.5l-8.5 8.5a5.5 5.5 0 0 1-8-8L13 4.5a3.7 3.7 0 0 1 5.3 5.3l-8.6 8.6a1.8 1.8 0 0 1-2.6-2.6L14.5 8"/></svg>${esc(r.file.name)} · ${kb(r.file.size)}</div>`:''}
       <div class="rc-act">${act}<button type="button" class="rc-mini admin-only" data-a="edit" title="Editar" aria-label="Editar"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button><button type="button" class="rc-mini admin-only" data-a="del" title="Eliminar" aria-label="Eliminar"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div></div>`;}).join('')
@@ -1716,6 +1650,8 @@ $('#rcFile').onchange=e=>{
 };
 $('#rcForm').onsubmit=async e=>{e.preventDefault();if(rcBusy)return;
   const v={tipo:$('#rcTipo').value,entrega:$('#rcEntrega').value?+$('#rcEntrega').value:null,titulo:$('#rcTitulo').value.trim(),descr:$('#rcDesc').value.trim(),url:safeUrl($('#rcUrl').value)};
+  v.gen=v.tipo==='notas'?cur():null;
+  if(v.tipo==='notas'&&!v.entrega){toast('Elige la entrega del cuaderno (no puede ser General)');return;}
   const btn=$('#rcSubmit'),old=rcEdit?rc.items.find(x=>x.id===rcEdit):null;
   rcBusy=true;btn.disabled=true;
   try{
@@ -1736,11 +1672,7 @@ $('#rcForm').onsubmit=async e=>{e.preventDefault();if(rcBusy)return;
 $('#rcFilter').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){rcF=b.dataset.v;rcRender();}});
 $('#rcList').addEventListener('click',async e=>{
   const b=e.target.closest('[data-a]');if(!b)return;const r=rc.items.find(x=>x.id===b.closest('.rcard').dataset.id);if(!r)return;
-  if(b.dataset.a==='dl'){
-    const {data,error}=await sb.storage.from('recursos').createSignedUrl(r.file.path,120,{download:r.file.name});
-    if(error){toast('No se pudo descargar el archivo');return;}
-    const a=document.createElement('a');a.href=data.signedUrl;a.download=r.file.name;document.body.appendChild(a);a.click();a.remove();return;
-  }
+  if(b.dataset.a==='dl'){rcDownload(r);return;}
   if(b.dataset.a==='del'){
     if(!confirm('¿Eliminar "'+r.titulo+'"?'))return;
     const {error}=await sb.from('recursos').delete().eq('id',r.id);
