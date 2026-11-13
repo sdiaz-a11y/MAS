@@ -660,6 +660,35 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 .ph-th{border-radius:14px;overflow:hidden;background:#0b0b0d;box-shadow:var(--ring)}
 .ph-th img{display:block;width:100%;max-height:300px;object-fit:contain}
 .ph-item textarea.f{min-height:76px;resize:vertical;font-size:16px}
+.tagwrap{position:relative}
+.tagbox{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;transition:border-color .2s,box-shadow .2s}
+.tagbox:focus-within{border-color:var(--red);box-shadow:0 0 0 4px rgba(209,15,31,.12)}
+.tg{display:inline-flex;align-items:center;gap:2px;padding:3px 4px 3px 10px;border-radius:99px;background:var(--red-soft);color:var(--red);font:700 12.5px "Montserrat",sans-serif}
+.tg.free{background:#eceef2;color:#40434a}
+.tg button{border:0;background:none;color:inherit;cursor:pointer;font-size:17px;line-height:1;padding:0 5px}
+.tagin{flex:1;min-width:150px;border:0;outline:0;background:none;font:inherit;font-size:16px;padding:5px 2px;color:var(--ink)}
+.sug{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:6;display:grid;gap:2px;max-height:250px;overflow:auto;padding:6px;border-radius:12px;background:#fff;box-shadow:var(--ring),0 20px 40px -16px rgba(0,0,0,.45)}
+.sug[hidden]{display:none}
+.sug button{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:0;border-radius:9px;background:none;text-align:left;cursor:pointer;font:600 14px "Manrope",sans-serif;color:var(--ink)}
+.sug button.on,.sug button:hover{background:var(--red-soft)}
+.sug .av2{width:28px;height:28px;font-size:12px}
+.sug .avf{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#eceef2;font-weight:700}
+.ph-item .taglab{font:700 12px "Montserrat",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#4a4d55;margin-top:2px}
+.bellwrap{display:flex}
+.pill.bell{position:relative;padding:8px 10px}
+.pill.bell .i{width:18px;height:18px}
+.notif{position:fixed;z-index:1600;width:min(380px,calc(100vw - 16px));max-height:min(70vh,520px);overflow:auto;border-radius:16px;background:#fff;box-shadow:var(--ring),0 30px 60px -20px rgba(0,0,0,.55);animation:pop .3s var(--ease)}
+.notif[hidden]{display:none}
+.nhead{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 10px;background:#fff}
+.nhead b{font:700 15px "Montserrat",sans-serif}
+.nhead button{border:0;background:none;color:var(--red);font:700 12px "Montserrat",sans-serif;cursor:pointer}
+.nt{position:relative;display:grid;gap:2px;width:100%;padding:12px 16px 12px 22px;border:0;border-top:1px solid #eef0f3;background:#fff;text-align:left;cursor:pointer;font:inherit;color:var(--ink)}
+.nt:hover{background:#f7f8fa}
+.nt.new{background:#fff5f6}
+.nt.new::before{content:'';position:absolute;left:9px;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:var(--red)}
+.nt-t{font-size:14px;line-height:1.35}
+.nt-d{font-size:13px;color:#4a4d55;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nt-a{font-size:12px;color:#8d929d}
 .phfoot{display:flex;gap:10px;padding:14px 20px;border-top:1px solid var(--line)}
 .phfoot .btn.red{flex:1}
 .brandtxt{position:relative;margin-right:92px}
@@ -729,7 +758,7 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 .bdg[hidden]{display:none}
 .tab{position:relative}
 .pw-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media(max-width:720px){.pw-grid{grid-template-columns:1fr}.top #roleBtn,.top #logoutBtn{display:flex}.top #roleBtn{margin-left:auto;padding:5px}.top #roleBtn #meName,.top #roleBtn .rolebadge{display:none}.top #logoutBtn{padding:8px}}
+@media(max-width:720px){.pw-grid{grid-template-columns:1fr}.top #bellBtn,.top #roleBtn,.top #logoutBtn{display:flex}.top .bellwrap{margin-left:auto}.top #roleBtn{padding:5px}.top #roleBtn #meName,.top #roleBtn .rolebadge{display:none}.top #logoutBtn{padding:8px}}
 .modal{position:fixed;inset:0;z-index:1500;display:grid;place-items:center;padding:20px;background:rgba(8,8,10,.55);backdrop-filter:blur(6px)}
 .modal[hidden]{display:none}
 .mcard{width:min(420px,100%);padding:22px;border-radius:20px;background:#fff;box-shadow:var(--ring),0 40px 80px -30px rgba(0,0,0,.7);animation:pop .4s var(--ease)}
@@ -778,6 +807,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
   <header class="top">
     <div class="brandtxt"><div class="a" aria-label="MAS"><span class="glow"><img src="logo.png" alt=""></span><img class="sharp" src="logo.png" alt=""></div><button class="genlabel" id="genLabel" title="Generación actual"><span id="genText">4ª GENERACIÓN</span><svg class="i admin-only" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button><div class="b">PORTAL DE MIEMBROS</div><span class="by" aria-label="Creado por Soporte">by SOPORTE</span></div>
     <nav class="tabs" id="tabs"></nav>
+    <div class="bellwrap"><button type="button" class="pill bell" id="bellBtn" title="Notificaciones" aria-label="Notificaciones"><svg class="i" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg><i class="bdg" id="bellBdg" hidden>0</i></button></div>
     <button type="button" class="pill" id="roleBtn" title="Mi cuenta"><span class="dot" id="meDot">D</span><span id="meName">…</span> <span class="rolebadge" id="roleTxt">Miembro</span></button>
     <button class="pill out" id="logoutBtn" title="Cerrar sesión" aria-label="Cerrar sesión"><svg class="i" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
   </header>
@@ -957,14 +987,17 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 
   </div>
 </div>
+<div class="notif" id="notifPanel" hidden>
+  <div class="nhead"><b>Notificaciones</b><button type="button" id="notifAll">Marcar todas como leídas</button></div>
+  <div id="notifList"></div>
+</div>
 <div class="modal" id="phPanel" hidden>
   <div class="mcard phcard" role="dialog" aria-labelledby="phTitle">
     <div class="phtop"><b id="phTitle">Nueva foto</b><button type="button" class="phx" id="phX" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="phbody">
       <div class="phwho" id="phWho"></div>
       <div class="ph-list" id="phList"></div>
-      <div class="phfield"><label for="phEntrega">¿De qué entrega es?</label><select id="phEntrega"></select></div>
-      <div class="phfield"><label>¿Quién sale? <small>(opcional)</small></label><div class="mchips" id="phChips"></div><div class="kick phhint">Escríbelos en la foto o toca un nombre para agregarlo</div></div>
+      <div class="phfield"><label for="phEntrega">¿De qué entrega es?</label><select id="phEntrega"></select><div class="kick phhint">Se sugiere según la fecha de la foto; cámbiala si hace falta</div></div>
     </div>
     <div class="phfoot"><button type="button" class="btn" id="phCancel">Cancelar</button><button type="button" class="btn red" id="phOk">Publicar</button></div>
   </div>
@@ -1100,13 +1133,14 @@ async function loadPortadas(){
   render();
 }
 async function loadMembers(){
-  const {data}=await sb.rpc('nombres_miembros');
+  const {data}=await sb.rpc('miembros_etiquetables');   /* [{id,nombre}] de los miembros registrados */
   db.members=data||[];
 }
 async function loadAll(){
   await loadGens();   /* primero: las demás cargas se pintan según la generación actual */
   await Promise.all([loadFotos(),loadPortadas(),plLoad(),rcLoad(),apLoad(),loadMembers(),loadFechas()]);
   renderTabs();render();plRender();apEnsure();
+  loadNotifs();subscribeNotifs();
   /* al recargar vuelve a la pestaña donde estabas (solo si sigue existiendo y puedes verla) */
   let t=null;try{t=localStorage.getItem('mas-tab');}catch(e){}
   const ok=t&&(TABS.some(x=>x.id===t&&(!x.admin||ME.rol==='admin'))||db.gens.some(g=>g.closed&&'gen-'+g.n===t));
@@ -1279,10 +1313,7 @@ document.addEventListener('click',e=>{
   const pa=e.target.closest('[data-pa]');
   if(pa){e.stopPropagation();phAction(pa.dataset.pa,pa.closest('.photo').dataset.id);return;}
   const p=e.target.closest('.photo');
-  if(p){const it=db.photos.find(x=>String(x.id)===p.dataset.id);
-    $('#lbBig').style.background=it.bg||'#444';
-    $('#lbBig').innerHTML=(it.url?`<img src="${it.url}" alt="">`:'')+`<span><b>${esc(it.titulo)}</b><br>Entrega ${it.entrega}${it.nombres&&it.nombres.length?'<br>Con: '+it.nombres.map(esc).join(' · '):''}${it.path?`<br><button type="button" class="btn red" data-phdl="${it.id}" style="margin-top:10px">Descargar</button>`:''}</span>`;
-    $('#lb').classList.add('on');}
+  if(p){const it=db.photos.find(x=>String(x.id)===p.dataset.id);if(it)showPhoto(it);}
 });
 $('#lb').onclick=e=>{if(e.target.closest('[data-phdl]'))return;$('#lb').classList.remove('on');};
 /* fechas importantes: viven en Supabase (tabla fechas), las ven todos los miembros */
@@ -1327,26 +1358,77 @@ function shrink(file,max=1400){return new Promise(res=>{const u=URL.createObject
 function phPaint(){
   $('#phEntrega').innerHTML='<option value="">Elige la entrega…</option>'+Array.from({length:12},(_,i)=>`<option>${i+1}</option>`).join('');
   $('#phEntrega').value=phItems.entrega||'';
-  $('#phChips').innerHTML=db.members.map(m=>`<button type="button" class="mchip" data-m="${esc(m)}">${esc(m)}</button>`).join('');
   const yo=ME||{nombre:'',foto:''};
   $('#phWho').innerHTML=avatarHTML(yo)+'<span>'+esc(yo.nombre)+'</span>';
   $('#phList').innerHTML=phItems.map((it,i)=>`<div class="ph-item"><div class="ph-th">${it.url?`<img src="${it.url}" alt="">`:''}</div>
-    <textarea class="f" data-k="titulo" data-i="${i}" rows="2" placeholder="Describe la foto… (obligatorio)">${esc(it.titulo)}</textarea><input class="f" data-k="nombres" data-i="${i}" value="${esc(it.nombres)}" placeholder="Quiénes salen: Ana P., Luis C."></div>`).join('');
+    <textarea class="f" data-k="titulo" data-i="${i}" rows="2" placeholder="Describe la foto… (obligatorio)">${esc(it.titulo)}</textarea>
+    <div class="taglab">Etiquetar a <span style="text-transform:none;letter-spacing:0;font-weight:600;color:#8d929d">(opcional)</span></div><div class="tagwrap" data-i="${i}"><div class="tagbox"></div><div class="sug" hidden></div></div></div>`).join('');
+  phItems.forEach((_,i)=>phTagsPaint(i));
 }
 function phOpen(){$('#phPanel').hidden=false;phPaint();setTimeout(()=>{const t=$('#phList textarea');if(t)t.focus();},50);}
 function phClose(){phItems=[];phEdit=null;phFocus=null;$('#phPanel').hidden=true;$('#file').value='';}
 $('#file').onchange=async e=>{
   const files=[...e.target.files];if(!files.length)return;
-  const out=[];for(const f of files){const url=await shrink(f);if(url)out.push({url,titulo:'',nombres:''});}
+  const out=[];for(const f of files){const url=await shrink(f);if(url)out.push({url,titulo:'',tags:[]});}
   if(!out.length){toast('No se pudo leer la imagen');return;}
-  phEdit=null;phItems=out;phItems.entrega=photoF==='all'?'':+photoF;$('#phTitle').textContent=out.length===1?'Nueva foto':'Nuevas fotos ('+out.length+')';phOpen();
+  phEdit=null;phItems=out;phItems.entrega=photoF==='all'?entregaDe(ymd(new Date(files[0].lastModified||Date.now()))):+photoF;   /* entrega sugerida por la fecha de la foto */$('#phTitle').textContent=out.length===1?'Nueva foto':'Nuevas fotos ('+out.length+')';phOpen();
 };
-$('#phList').addEventListener('input',e=>{const i=e.target.dataset.i;if(i!=null)phItems[+i][e.target.dataset.k]=e.target.value;});
-$('#phList').addEventListener('focusin',e=>{if(e.target.dataset.k==='nombres')phFocus=e.target;});
-$('#phChips').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;
-  const inp=phFocus&&document.body.contains(phFocus)?phFocus:$('#phList [data-k=nombres]');if(!inp)return;
-  const cur2=parseNames(inp.value);if(!cur2.includes(b.dataset.m))cur2.push(b.dataset.m);inp.value=cur2.join(', ');
-  phItems[+inp.dataset.i].nombres=inp.value;inp.focus();});
+/* ---- etiquetas: al escribir un nombre se sugieren los miembros registrados (como en Facebook); quien sea etiquetado recibe una notificación ---- */
+const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+let sug={i:null,list:[]};
+function phTagsPaint(i){
+  const w=$('#phList .tagwrap[data-i="'+i+'"]');if(!w)return;
+  const it=phItems[i];
+  w.querySelector('.tagbox').innerHTML=it.tags.map((t,k)=>`<span class="tg ${t.id?'':'free'}">${esc(t.nombre)}<button type="button" data-rm="${i}:${k}" aria-label="Quitar etiqueta">×</button></span>`).join('')+`<input class="tagin" data-i="${i}" placeholder="${it.tags.length?'':'Escribe un nombre…'}" autocomplete="off">`;
+}
+function phSug(inp){
+  const i=+inp.dataset.i,box=inp.closest('.tagwrap').querySelector('.sug'),txt=inp.value.trim(),q=norm(txt),have=new Set(phItems[i].tags.map(t=>t.id).filter(Boolean));
+  const list=db.members.filter(m=>!have.has(m.id)&&(!q||norm(m.nombre).includes(q))).slice(0,6);
+  sug={i,list};
+  box.innerHTML=list.map((m,k)=>`<button type="button" class="${k===0?'on':''}" data-pick="${i}:${k}">${avatarHTML({nombre:m.nombre,foto:''})}<span>${esc(m.nombre)}</span></button>`).join('')
+    +(q&&!list.some(m=>norm(m.nombre)===q)?`<button type="button" class="${list.length?'':'on'}" data-free="${i}"><span class="avf">+</span><span>Agregar «${esc(txt)}» (sin cuenta)</span></button>`:'');
+  box.hidden=!box.innerHTML;
+}
+function phAddTag(i,t){
+  if(phItems[i].tags.some(x=>(t.id&&x.id===t.id)||(!t.id&&norm(x.nombre)===norm(t.nombre))))return phTagsPaint(i);
+  phItems[i].tags.push(t);phTagsPaint(i);
+  const inp=$('#phList .tagin[data-i="'+i+'"]');if(inp){inp.focus();phSug(inp);}
+}
+/* lo que quedó escrito sin confirmar también cuenta: si coincide con un miembro, se etiqueta; si no, va como nombre sin cuenta */
+function phFlushTags(){
+  document.querySelectorAll('#phList .tagin').forEach(inp=>{
+    const i=+inp.dataset.i,txt=inp.value.trim();if(!txt)return;
+    const m=db.members.find(x=>norm(x.nombre)===norm(txt));
+    if(!phItems[i].tags.some(t=>norm(t.nombre)===norm(m?m.nombre:txt)))phItems[i].tags.push(m?{id:m.id,nombre:m.nombre}:{id:null,nombre:txt});
+  });
+}
+$('#phList').addEventListener('input',e=>{
+  if(e.target.classList.contains('tagin')){phSug(e.target);return;}
+  const i=e.target.dataset.i;if(i!=null&&e.target.dataset.k==='titulo')phItems[+i].titulo=e.target.value;
+});
+$('#phList').addEventListener('focusin',e=>{if(e.target.classList.contains('tagin'))phSug(e.target);});
+$('#phList').addEventListener('keydown',e=>{
+  const inp=e.target;if(!inp.classList||!inp.classList.contains('tagin'))return;
+  const i=+inp.dataset.i,box=inp.closest('.tagwrap').querySelector('.sug'),bs=[...box.querySelectorAll('button')],cur=bs.findIndex(b=>b.classList.contains('on'));
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(!bs.length)return;e.preventDefault();const n=(cur+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;bs.forEach((b,k)=>b.classList.toggle('on',k===n));box.hidden=false;return;}
+  if(e.key==='Enter'||e.key===','){
+    e.preventDefault();
+    if(!box.hidden&&bs.length)bs[cur>=0?cur:0].dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));
+    else if(inp.value.trim())phAddTag(i,{id:null,nombre:inp.value.trim()});
+    return;
+  }
+  if(e.key==='Backspace'&&!inp.value&&phItems[i].tags.length){phItems[i].tags.pop();phTagsPaint(i);const n=$('#phList .tagin[data-i="'+i+'"]');if(n){n.focus();phSug(n);}return;}
+  if(e.key==='Escape'&&!box.hidden){box.hidden=true;e.stopPropagation();}
+});
+$('#phList').addEventListener('mousedown',e=>{
+  const p=e.target.closest('[data-pick]');
+  if(p){e.preventDefault();const [i,k]=p.dataset.pick.split(':').map(Number);if(sug.i===i&&sug.list[k])phAddTag(i,{id:sug.list[k].id,nombre:sug.list[k].nombre});return;}
+  const f=e.target.closest('[data-free]');
+  if(f){e.preventDefault();const i=+f.dataset.free,inp=$('#phList .tagin[data-i="'+i+'"]');if(inp&&inp.value.trim())phAddTag(i,{id:null,nombre:inp.value.trim()});return;}
+  const r=e.target.closest('[data-rm]');
+  if(r){e.preventDefault();const [i,k]=r.dataset.rm.split(':').map(Number);phItems[i].tags.splice(k,1);phTagsPaint(i);}
+});
+document.addEventListener('mousedown',e=>{if(!e.target.closest('.tagwrap'))document.querySelectorAll('#phList .sug').forEach(b=>{b.hidden=true;});});
 $('#phCancel').onclick=phClose;
 $('#phX').onclick=phClose;
 $('#phPanel').addEventListener('click',e=>{if(e.target===$('#phPanel'))phClose();});
@@ -1357,11 +1439,13 @@ $('#phOk').onclick=async()=>{
   const entrega=+$('#phEntrega').value,ed=!!phEdit,n=phItems.length,btn=$('#phOk');
   if(!$('#phEntrega').value){toast('Elige a qué entrega pertenece');return;}
   if(phItems.some(it=>!it.titulo.trim())){toast('Escribe una descripción de cada foto');return;}
+  phFlushTags();
+  const nombresDe=it=>it.tags.map(t=>t.nombre),idsDe=it=>[...new Set(it.tags.filter(t=>t.id).map(t=>t.id))];
   phBusy=true;btn.disabled=true;
   try{
     if(ed){
       const it=phItems[0],p=db.photos.find(x=>x.id===phEdit);
-      const {error}=await sb.from('fotos').update({titulo:it.titulo.trim(),nombres:parseNames(it.nombres),entrega}).eq('id',phEdit);
+      const {error}=await sb.from('fotos').update({titulo:it.titulo.trim(),nombres:nombresDe(it),etiquetados:idsDe(it),entrega}).eq('id',phEdit);
       if(error)throw error;
     }else{
       /* se suben al revés para que la primera foto quede arriba (la galería muestra lo más nuevo primero) */
@@ -1370,7 +1454,7 @@ $('#phOk').onclick=async()=>{
         const path=ME.id+'/'+crypto.randomUUID()+'.jpg';   /* cada quien sube a su carpeta */
         const up=await sb.storage.from('galeria').upload(path,blob,{contentType:'image/jpeg'});
         if(up.error)throw up.error;
-        const {error}=await sb.from('fotos').insert({gen:cur(),entrega,titulo:it.titulo.trim(),nombres:parseNames(it.nombres),path});
+        const {error}=await sb.from('fotos').insert({gen:cur(),entrega,titulo:it.titulo.trim(),nombres:nombresDe(it),etiquetados:idsDe(it),path});
         if(error){await sb.storage.from('galeria').remove([path]);throw error;}
       }
     }
@@ -1385,7 +1469,7 @@ async function phAction(a,id){
     if(error){toast('No se pudo eliminar la foto');return;}
     await sb.storage.from('galeria').remove([p.path]);
     db.photos=db.photos.filter(x=>x!==p);render();toast('Foto eliminada');return;}
-  phEdit=p.id;phItems=[{url:p.url,bg:p.bg,titulo:p.titulo,nombres:(p.nombres||[]).join(', ')}];phItems.entrega=p.entrega;$('#phTitle').textContent='Editar foto';phOpen();
+  phEdit=p.id;phItems=[{url:p.url,titulo:p.titulo,tags:(p.nombres||[]).map(n=>{const m=db.members.find(x=>x.nombre===n);return{id:m?m.id:null,nombre:n};})}];phItems.entrega=p.entrega;$('#phTitle').textContent='Editar foto';phOpen();
 }
 
 /* ====================== APUNTES (cuaderno) ======================
@@ -2002,6 +2086,63 @@ $('#acForm').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
   if(error){say(m,'No se pudo cambiar la contraseña. Inténtalo de nuevo.','err');return;}
   $('#acForm').reset();say(m,'Contraseña actualizada.','ok');toast('Contraseña actualizada');
 });};
+
+function showPhoto(it){
+  $('#lbBig').style.background=it.bg||'#444';
+  $('#lbBig').innerHTML=(it.url?`<img src="${it.url}" alt="">`:'')+`<span><b>${esc(it.titulo)}</b><br>Entrega ${it.entrega}${it.nombres&&it.nombres.length?'<br>Con: '+it.nombres.map(esc).join(' · '):''}${it.path?`<br><button type="button" class="btn red" data-phdl="${it.id}" style="margin-top:10px">Descargar</button>`:''}</span>`;
+    $('#lb').classList.add('on');
+}
+/* ====================== NOTIFICACIONES ======================
+   La campana de la barra: avisos de que te etiquetaron en una foto. Los crea la base de datos (supabase/etiquetas.sql);
+   llegan en vivo y también se consultan al volver a la pestaña y cada minuto y medio. */
+let notifs=[],notifSub=false;
+const npanel=$('#notifPanel');
+function renderNotifs(){
+  const n=notifs.filter(x=>!x.leida).length,b=$('#bellBdg');
+  b.textContent=n>9?'9+':n;b.hidden=!n;
+  $('#notifList').innerHTML=notifs.map(x=>`<button type="button" class="nt ${x.leida?'':'new'}" data-nt="${x.id}"><span class="nt-t"><b>${esc(x.de_nombre||'Alguien')}</b> te etiquetó en una foto${x.entrega?' · Entrega '+x.entrega:''}</span>${x.detalle?`<span class="nt-d">“${esc(x.detalle)}”</span>`:''}<span class="nt-a">${ago(Date.parse(x.creado))}</span></button>`).join('')||'<p class="kick" style="padding:6px 16px 18px;margin:0">Aquí verás cuando alguien te etiquete en una foto</p>';
+}
+async function loadNotifs(){
+  if(!ME)return;
+  const {data,error}=await sb.from('notificaciones').select('id,foto_id,de_nombre,entrega,detalle,leida,creado').order('creado',{ascending:false}).limit(30);
+  if(error){console.error(error);return;}
+  notifs=data;renderNotifs();
+}
+function subscribeNotifs(){
+  if(notifSub||!ME)return;notifSub=true;
+  sb.channel('notif-'+ME.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'notificaciones',filter:'user_id=eq.'+ME.id},p=>{
+    const r=p.new;if(!r||notifs.some(x=>x.id===r.id))return;
+    notifs.unshift(r);renderNotifs();toast((r.de_nombre||'Alguien')+' te etiquetó en una foto');
+    loadFotos();   /* para que la foto ya esté lista al abrir el aviso */
+  }).subscribe();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadNotifs();});
+  setInterval(()=>{if(!document.hidden)loadNotifs();},90000);
+}
+async function openNotif(id){
+  const n=notifs.find(x=>x.id===id);if(!n)return;
+  npanel.hidden=true;
+  if(!n.leida){n.leida=true;renderNotifs();sb.from('notificaciones').update({leida:true}).eq('id',id).then(()=>{});}
+  let p=db.photos.find(x=>x.id===n.foto_id);
+  if(!p){await loadFotos();p=db.photos.find(x=>x.id===n.foto_id);}
+  if(!p){toast('Esa foto ya no está disponible');return;}
+  go('galeria');showPhoto(p);
+}
+$('#bellBtn').onclick=e=>{
+  e.stopPropagation();
+  if(!npanel.hidden){npanel.hidden=true;return;}
+  const r=$('#bellBtn').getBoundingClientRect();
+  npanel.hidden=false;npanel.style.top=(r.bottom+10)+'px';npanel.style.right=Math.max(8,innerWidth-r.right)+'px';
+  loadNotifs();
+};
+document.addEventListener('click',e=>{if(!npanel.hidden&&!npanel.contains(e.target)&&!e.target.closest('#bellBtn'))npanel.hidden=true;});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!npanel.hidden)npanel.hidden=true;});
+npanel.addEventListener('click',e=>{const b=e.target.closest('[data-nt]');if(b)openNotif(+b.dataset.nt);});
+$('#notifAll').onclick=async()=>{
+  if(!notifs.some(x=>!x.leida))return;
+  notifs.forEach(x=>{x.leida=true;});renderNotifs();
+  const {error}=await sb.from('notificaciones').update({leida:true}).eq('user_id',ME.id).eq('leida',false);
+  if(error){toast('No se pudieron marcar');loadNotifs();}
+};
 
 if(window.__must){showLock();setRole('miembro');showMust();}
 else if(ME){hideLock();initUserUI();loadAll();if(ME.rol==='admin')loadUsers();}
