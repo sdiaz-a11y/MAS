@@ -577,6 +577,8 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 .cuad .tx b{display:block;font-size:14.5px}
 .cuad .tx p{font-size:13px;color:#4a4d55;margin:2px 0 0}
 .cuad .tx small{display:block;color:#8d929d;font-size:12px;margin-top:2px;overflow-wrap:anywhere}
+.dia{margin:10px 2px 0;font:700 11px "Montserrat",sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8d929d}
+.dia:first-child{margin-top:0}
 .cuad-act{display:flex;gap:8px;flex:none}
 .cuad .btn{flex:none}
 @media(max-width:560px){.cuad{flex-wrap:wrap}.cuad-act{width:100%}.cuad-act .btn{flex:1}}
@@ -1091,6 +1093,12 @@ const cuadernos=g=>rc.items.filter(r=>r.tipo==='notas'&&r.gen===g&&r.entrega);  
 const apFilled=p=>!!(p.tema||p.speaker||/class="(dgm|tbl)"/.test(p.html||'')||(p.html||'').replace(/<[^>]*>|&nbsp;|\s/g,''));
 const misApuntes=e=>ap.pages.filter(p=>p.gen===cur()&&p.entrega===e&&apFilled(p)).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
 const apRow=p=>`<div class="cuad"><div class="rc-ico notas"><svg class="i" viewBox="0 0 24 24">${IC.notas}</svg></div><div class="tx"><b>${esc(p.tema||'Sin tema')}</b>${p.speaker?`<p>${esc(p.speaker)}</p>`:''}${p.fecha?`<small>${fmt(p.fecha)}</small>`:''}</div><div class="cuad-act"><button type="button" class="btn red" data-ap="${p.id}">Abrir</button></div></div>`;
+/* mis apuntes de una entrega, agrupados por día (más antiguo primero) */
+const porDia=ps=>{
+  const m=new Map();ps.forEach(p=>{const k=p.fecha||'';if(!m.has(k))m.set(k,[]);m.get(k).push(p);});
+  const dia=k=>{if(!k)return'Sin fecha';const s=new Date(k+'T12:00').toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});return s.charAt(0).toUpperCase()+s.slice(1);};
+  return [...m.entries()].map(([k,l])=>`<div class="dia">${dia(k)}</div>`+l.map(apRow).join('')).join('');
+};
 /* número de entrega que le toca a una fecha, según el calendario de Inicio: dentro de sus días → esa; entre entregas → la última que ya empezó */
 const ORD={primera:1,primer:1,segunda:2,tercera:3,cuarta:4,quinta:5,sexta:6,septima:7,octava:8,novena:9,decima:10,undecima:11,duodecima:12};
 function entregaDe(f){
@@ -1132,7 +1140,7 @@ function render(){
     el.className='';
     el.innerHTML=`<div class="fhead"><button type="button" class="btn" data-back>${back} Entregas</button><b>Entrega ${e}</b></div>`
       +`<h2 class="sec caps">Notas</h2>`+(cs.length?`<div class="rows">${cs.map(r=>cuadRow(r)).join('')}</div>`:'<p class="kick">Las notas de esta entrega se publicarán pronto</p>')
-      +`<h2 class="sec caps">Cuaderno de notas <span class="cnt">${as.length}</span></h2>`+(as.length?`<div class="rows">${as.map(apRow).join('')}</div>`:'<p class="kick">Aún no tienes apuntes de esta entrega. Escríbelos en Mis apuntes.</p>')
+      +`<h2 class="sec caps">Cuaderno de notas <span class="cnt">${as.length}</span></h2>`+(as.length?`<div class="rows">${porDia(as)}</div>`:'<p class="kick">Aún no tienes apuntes de esta entrega. Escríbelos en Mis apuntes.</p>')
       +`<h2 class="sec caps">Fotos <span class="cnt">${ps.length}</span></h2>`+(ps.length?`<div class="grid">${ps.map(p=>photoCard(p,true)).join('')}</div>`:'<p class="kick">Aún no hay fotos de esta entrega</p>');
   }
   const MES={ENE:0,FEB:1,MAR:2,ABR:3,MAY:4,JUN:5,JUL:6,AGO:7,SEP:8,OCT:9,NOV:10,DIC:11},MN=Object.keys(MES);
