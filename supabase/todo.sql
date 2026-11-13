@@ -62,9 +62,9 @@ revoke execute on function public.handle_new_user() from public, anon, authentic
 -- la foto de perfil NO viaja en los datos de la cuenta (inflaba el token de sesión y la base respondía "Bad Request"):
 -- la app la guarda con esta función, ya con la sesión iniciada
 create or replace function public.set_mi_foto(p_foto text) returns void
-language sql security definer set search_path = public as $
+language sql security definer set search_path = public as $$
   update public.profiles set foto = coalesce(p_foto, '') where id = auth.uid() and length(coalesce(p_foto, '')) < 400000;
-$;
+$$;
 revoke execute on function public.set_mi_foto(text) from public, anon;
 grant  execute on function public.set_mi_foto(text) to authenticated;
 
