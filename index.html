@@ -851,6 +851,15 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 .egrp.past{opacity:.55}
 /* ===== Celular (al final para ganar sobre las reglas base) ===== */
 .tcov .fctl .i{width:14px;height:14px}
+@media(max-width:420px){
+.top{gap:6px}.brandtxt{padding:0 4px}
+.tabs{gap:0;padding-left:2px;padding-right:2px}
+.tabs .tab{min-width:0;padding:8px 1px;font-size:10px;letter-spacing:0}
+}
+@media(max-width:380px){
+#apFecha::-webkit-calendar-picker-indicator{display:none}#apFecha{font-size:12px!important}
+.date .chev{display:none}.date .dd,.egrp .egd{width:58px;min-width:58px}
+}
 .fbody p span{white-space:nowrap}
 @media(max-width:560px){
 .folders{grid-template-columns:repeat(2,1fr);gap:16px 12px}
