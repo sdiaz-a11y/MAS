@@ -786,7 +786,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 
       <!-- NOTAS -->
       <section class="view" id="v-notas">
-        <h1>Notas</h1><div class="kick">El cuaderno de cada entrega y las fotos del grupo</div>
+        <h1>Memorias</h1><div class="kick">El cuaderno y las fotos de cada entrega</div>
         <h2 class="sec caps"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg>Entregas</h2>
         <div id="entList"></div>
         <input type="file" id="coverFile" accept="image/*" hidden>
@@ -879,7 +879,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
         <div class="panel admin-only" style="margin-top:18px">
           <form id="rcForm" class="rc-form">
             <div class="rc-top">
-              <div><label for="rcTipo">Tipo</label><select id="rcTipo"><option value="plantilla">Plantilla</option><option value="ejercicio">Ejercicio</option><option value="notas">Notas (cuaderno de la entrega)</option></select></div>
+              <div><label for="rcTipo">Tipo</label><select id="rcTipo"><option value="plantilla">Plantilla</option><option value="ejercicio">Ejercicio</option><option value="notas">Cuaderno de la entrega (aparece en Memorias)</option></select></div>
               <div><label for="rcEntrega">Entrega</label><select id="rcEntrega"></select></div>
               <div class="rc-w"><label for="rcTitulo">Título</label><input class="f" id="rcTitulo" required maxlength="100" placeholder="Ej. Plantilla de oferta irresistible" autocomplete="off"></div>
             </div>
@@ -1034,7 +1034,7 @@ if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol))addEventLis
 /* ---------- Pestañas: para agregar una, añade una línea aquí y un <section id="v-ID"> ---------- */
 const TABS = [
   {id:'inicio', label:'Inicio',  icon:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'},
-  {id:'notas',  label:'Notas',   icon:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>'},
+  {id:'notas',  label:'Memorias', icon:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>'},
   {id:'apuntes',label:'Apuntes', icon:'<path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6zM6 3v18M10 8h6M10 12h6M10 16h3"/>'},
   {id:'plan',   label:'Plan de acción', short:'Plan', icon:'<path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/>'},
   {id:'recursos',label:'Plantillas y ejercicios', short:'Recursos', icon:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'},
@@ -1043,7 +1043,7 @@ const TABS = [
 ];
 
 /* ---------- Datos: todo vive en Supabase (esquema en supabase/datos.sql). Aquí solo se guarda lo ya cargado. ---------- */
-let db={currentGen:4,gens:[{n:4,year:2026}],members:[],photos:[]}, photoF='all', openEnt=null, covers={};   /* openEnt: entrega abierta en Notas (null = tarjetas); covers: portada de cada entrega */
+let db={currentGen:4,gens:[{n:4,year:2026}],members:[],photos:[]}, photoF='all', openEnt=null, covers={};   /* openEnt: entrega abierta en Memorias (null = tarjetas); covers: portada de cada entrega */
 async function loadGens(){
   const {data,error}=await sb.from('generaciones').select('*').order('n');
   if(error){toast('No se pudieron cargar las generaciones');return;}
@@ -1188,7 +1188,7 @@ function toast(msg){let el=$('#toast');if(!el){el=document.createElement('div');
 })();
 function go(id){
   activeTab=id;
-  if(id==='notas'&&openEnt!==null){openEnt=null;render();}   /* tocar la pestaña Notas vuelve a las tarjetas */
+  if(id==='notas'&&openEnt!==null){openEnt=null;render();}   /* tocar la pestaña Memorias vuelve a las tarjetas */
   try{localStorage.setItem('mas-tab',id);}catch(e){}
   const isGen=id.startsWith('gen-'); if(isGen) renderGen(+id.slice(4));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===id));
@@ -1202,7 +1202,7 @@ function go(id){
 $('#genLabel').onclick=async()=>{
   if(!document.body.classList.contains('is-admin')) return;
   const g=db.gens.find(x=>x.n===cur());
-  const v=prompt('Número de la generación actual (Notas y Galería mostrarán solo esa generación):',g.n);
+  const v=prompt('Número de la generación actual (Memorias y Galería mostrarán solo esa generación):',g.n);
   const n=parseInt(v,10); if(!n||n<1||n===g.n) return;
   const known=db.gens.find(x=>x.n===n);
   const {error}=await sb.rpc('set_generacion_actual',{p_n:n,p_anio:known?known.year:g.year+(n-g.n)});
@@ -1676,7 +1676,7 @@ $('#plList').addEventListener('click',async e=>{
 plRender();
 
 /* ====================== PLANTILLAS Y EJERCICIOS ======================
-   Solo los admin publican, editan y eliminan; los miembros ven y descargan. Los de tipo Notas aparecen en la pestaña Notas.
+   Solo los admin publican, editan y eliminan; los miembros ven y descargan. Los de tipo Cuaderno aparecen en la pestaña Memorias.
    La lista vive en la tabla recursos; los archivos, en el bucket privado 'recursos' (se bajan con enlace firmado). */
 const RC_MAX=25*1024*1024;
 let rc={items:[]};
@@ -1715,8 +1715,8 @@ async function rcLoad(){
 function rcRender(){
   $('#rcEntrega').innerHTML='<option value="">General</option>'+Array.from({length:12},(_,i)=>`<option value="${i+1}">Entrega ${i+1}</option>`).join('');
   if(rcEdit){const r=rc.items.find(x=>x.id===rcEdit);if(r)$('#rcEntrega').value=r.entrega??'';}
-  const adm=ME&&ME.rol==='admin';   /* los cuadernos de notas se ven en la pestaña Notas; aquí solo los gestiona el admin */
-  $('#rcFilter').innerHTML=[['all','Todo'],['plantilla','Plantillas'],['ejercicio','Ejercicios'],...(adm?[['notas','Notas']]:[])].map(([v,l])=>`<button class="chip ${rcF===v?'on':''}" data-v="${v}">${l}</button>`).join('');
+  const adm=ME&&ME.rol==='admin';   /* los cuadernos se ven en la pestaña Memorias; aquí solo los gestiona el admin */
+  $('#rcFilter').innerHTML=[['all','Todo'],['plantilla','Plantillas'],['ejercicio','Ejercicios'],...(adm?[['notas','Cuadernos']]:[])].map(([v,l])=>`<button class="chip ${rcF===v?'on':''}" data-v="${v}">${l}</button>`).join('');
   const list=rc.items.filter(r=>(rcF==='all'||r.tipo===rcF)&&(adm||r.tipo!=='notas'));
   $('#rcList').innerHTML=list.map(r=>{
     const act=rcAct(r);
