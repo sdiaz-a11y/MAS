@@ -639,19 +639,29 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 .pctl button:hover{color:var(--red)}
 .pctl .i{width:15px;height:15px}
 @media(hover:none){.pctl{opacity:1}}
-.ph-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.ph-head b{font:700 15px "Montserrat",sans-serif}
-.ph-ent{display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0}
-.ph-ent select{width:auto;padding:6px 10px}
 .mchips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .mchip{font:600 12px "Montserrat",sans-serif;padding:5px 11px;border-radius:99px;border:1px solid #c3c6cc;background:#fff;color:#30333a;cursor:pointer;transition:all .2s}
 .mchip:hover{border-color:var(--red);color:var(--red);background:var(--red-soft)}
-.ph-list{display:grid;gap:10px}
-.ph-item{display:flex;gap:12px;align-items:center}
-.ph-th{flex:none;width:76px;height:76px;border-radius:12px;overflow:hidden;position:relative;box-shadow:var(--ring)}
-.ph-th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.ph-f{flex:1;display:grid;gap:6px;min-width:0}
-.ph-f .f{padding:8px 10px}
+.phcard{width:min(560px,100%);max-height:calc(100vh - 40px);display:flex;flex-direction:column;padding:0;overflow:hidden}
+.phtop{display:flex;align-items:center;justify-content:center;position:relative;padding:16px 56px;border-bottom:1px solid var(--line)}
+.phtop b{font:700 18px "Montserrat",sans-serif}
+.phx{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:0;background:#eceef2;color:#30333a;cursor:pointer;display:grid;place-items:center}
+.phx:hover{background:#e0e2e7;color:var(--red)}
+.phx .i{width:16px;height:16px}
+.phbody{display:grid;gap:16px;padding:16px 20px;overflow:auto}
+.phwho{display:flex;align-items:center;gap:10px;font-weight:700}
+.phwho .av2{width:38px;height:38px;font-size:15px}
+.phfield{display:grid;gap:6px}
+.phfield>label{font:700 12px "Montserrat",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#4a4d55}
+.phfield>label small{text-transform:none;letter-spacing:0;font-weight:600;color:#8d929d}
+.phhint{margin:0;text-transform:none;letter-spacing:0;font-size:12px}
+.ph-list{display:grid;gap:18px}
+.ph-item{display:grid;gap:8px}
+.ph-th{border-radius:14px;overflow:hidden;background:#0b0b0d;box-shadow:var(--ring)}
+.ph-th img{display:block;width:100%;max-height:300px;object-fit:contain}
+.ph-item textarea.f{min-height:76px;resize:vertical;font-size:16px}
+.phfoot{display:flex;gap:10px;padding:14px 20px;border-top:1px solid var(--line)}
+.phfoot .btn.red{flex:1}
 .brandtxt{position:relative;margin-right:92px}
 .brandtxt .by{position:absolute;left:184px;top:30px;font:600 25px/1 "Caveat","Reenie Beanie",cursive;color:#9a9da5;transform:rotate(-9deg);transform-origin:left bottom;white-space:nowrap;pointer-events:none;letter-spacing:.01em}
 @media(max-width:1000px){.brandtxt{margin-right:0}.brandtxt .by{display:none}}
@@ -928,13 +938,6 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
       <section class="view" id="v-galeria">
         <h1>Galería</h1><div class="kick">Momentos de cada entrega</div>
         <label class="drop" for="file"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Subir fotos<input id="file" type="file" accept="image/*" multiple hidden></label>
-        <div class="panel" id="phPanel" hidden>
-          <div class="ph-head"><b id="phTitle">Nuevas fotos</b><label class="ph-ent">Entrega <select id="phEntrega"></select></label></div>
-          <div class="kick" style="margin:6px 0 8px">Escribe quién sale en cada foto o toca un nombre para agregarlo a la foto seleccionada</div>
-          <div class="mchips" id="phChips"></div>
-          <div class="ph-list" id="phList"></div>
-          <div style="display:flex;gap:8px;margin-top:12px"><button type="button" class="btn red" id="phOk">Publicar</button><button type="button" class="btn" id="phCancel">Cancelar</button></div>
-        </div>
         <div class="filters" id="photoFilter"></div>
         <div class="grid" id="photoGrid"></div>
       </section>
@@ -952,6 +955,18 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
       </section>
     </main>
 
+  </div>
+</div>
+<div class="modal" id="phPanel" hidden>
+  <div class="mcard phcard" role="dialog" aria-labelledby="phTitle">
+    <div class="phtop"><b id="phTitle">Nueva foto</b><button type="button" class="phx" id="phX" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="phbody">
+      <div class="phwho" id="phWho"></div>
+      <div class="ph-list" id="phList"></div>
+      <div class="phfield"><label for="phEntrega">¿De qué entrega es?</label><select id="phEntrega"></select></div>
+      <div class="phfield"><label>¿Quién sale? <small>(opcional)</small></label><div class="mchips" id="phChips"></div><div class="kick phhint">Escríbelos en la foto o toca un nombre para agregarlo</div></div>
+    </div>
+    <div class="phfoot"><button type="button" class="btn" id="phCancel">Cancelar</button><button type="button" class="btn red" id="phOk">Publicar</button></div>
   </div>
 </div>
 <div class="modal" id="apDlModal" hidden>
@@ -1313,10 +1328,12 @@ function phPaint(){
   $('#phEntrega').innerHTML='<option value="">Elige la entrega…</option>'+Array.from({length:12},(_,i)=>`<option>${i+1}</option>`).join('');
   $('#phEntrega').value=phItems.entrega||'';
   $('#phChips').innerHTML=db.members.map(m=>`<button type="button" class="mchip" data-m="${esc(m)}">${esc(m)}</button>`).join('');
-  $('#phList').innerHTML=phItems.map((it,i)=>`<div class="ph-item"><div class="ph-th" style="background:${it.bg||'#444'}">${it.url?`<img src="${it.url}" alt="">`:''}</div>
-    <div class="ph-f"><input class="f" data-k="titulo" data-i="${i}" value="${esc(it.titulo)}" placeholder="Describe la foto (obligatorio)"><input class="f" data-k="nombres" data-i="${i}" value="${esc(it.nombres)}" placeholder="Quiénes salen: Ana P., Luis C."></div></div>`).join('');
+  const yo=ME||{nombre:'',foto:''};
+  $('#phWho').innerHTML=avatarHTML(yo)+'<span>'+esc(yo.nombre)+'</span>';
+  $('#phList').innerHTML=phItems.map((it,i)=>`<div class="ph-item"><div class="ph-th">${it.url?`<img src="${it.url}" alt="">`:''}</div>
+    <textarea class="f" data-k="titulo" data-i="${i}" rows="2" placeholder="Describe la foto… (obligatorio)">${esc(it.titulo)}</textarea><input class="f" data-k="nombres" data-i="${i}" value="${esc(it.nombres)}" placeholder="Quiénes salen: Ana P., Luis C."></div>`).join('');
 }
-function phOpen(){$('#phPanel').hidden=false;phPaint();$('#phPanel').scrollIntoView({behavior:'smooth',block:'center'});}
+function phOpen(){$('#phPanel').hidden=false;phPaint();setTimeout(()=>{const t=$('#phList textarea');if(t)t.focus();},50);}
 function phClose(){phItems=[];phEdit=null;phFocus=null;$('#phPanel').hidden=true;$('#file').value='';}
 $('#file').onchange=async e=>{
   const files=[...e.target.files];if(!files.length)return;
@@ -1331,6 +1348,9 @@ $('#phChips').addEventListener('click',e=>{const b=e.target.closest('[data-m]');
   const cur2=parseNames(inp.value);if(!cur2.includes(b.dataset.m))cur2.push(b.dataset.m);inp.value=cur2.join(', ');
   phItems[+inp.dataset.i].nombres=inp.value;inp.focus();});
 $('#phCancel').onclick=phClose;
+$('#phX').onclick=phClose;
+$('#phPanel').addEventListener('click',e=>{if(e.target===$('#phPanel'))phClose();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#phPanel').hidden)phClose();});
 let phBusy=false;
 $('#phOk').onclick=async()=>{
   if(phBusy)return;
