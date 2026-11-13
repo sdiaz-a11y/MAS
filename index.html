@@ -887,18 +887,16 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 
       <!-- SOLICITUDES (solo admin) -->
       <section class="view" id="v-solicitudes">
-        <h1>Solicitudes de acceso</h1><div class="kick">Solo los admin ven esta sección</div>
-        <h2 class="sec caps">Pendientes <span class="cnt" id="reqCnt">0</span></h2>
-        <div id="reqList"></div>
+        <h1>Usuarios</h1><div class="kick">Solo los admin ven esta sección</div>
         <h2 class="sec caps">Contraseñas por restablecer <span class="cnt" id="pwReqCnt">0</span></h2>
         <div id="pwReqList"></div>
         <h2 class="sec caps">Miembros y admins</h2>
         <div id="memList"></div>
-        <h2 class="sec caps">Rechazadas</h2>
+        <h2 class="sec caps">Sin acceso</h2>
         <div id="rejList"></div>
         <h2 class="sec caps">Código del grupo</h2>
         <div class="panel">
-          <form id="pwM" class="lk-fx"><label for="pwMi">Código que los nuevos miembros usan al solicitar acceso</label><input class="f" type="text" id="pwMi" minlength="6" placeholder="Nuevo código (mín. 6)" autocomplete="off"><button class="btn red" type="submit" style="margin-top:8px">Guardar</button></form>
+          <form id="pwM" class="lk-fx"><label for="pwMi">Código que los nuevos miembros usan para crear su cuenta</label><input class="f" type="text" id="pwMi" minlength="6" placeholder="Nuevo código (mín. 6)" autocomplete="off"><button class="btn red" type="submit" style="margin-top:8px">Guardar</button></form>
         </div>
       </section>
 
@@ -967,7 +965,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
   <div class="lk-card">
     <img class="lk-logo" src="logo.png" alt="Mastermind de Acción Sinergético">
     <div class="lk-sub">PORTAL DE MIEMBROS</div>
-    <div class="lk-tabs"><button type="button" class="on" data-lt="login">Iniciar sesión</button><button type="button" data-lt="req">Solicitar acceso</button></div>
+    <div class="lk-tabs"><button type="button" class="on" data-lt="login">Iniciar sesión</button><button type="button" data-lt="req">Crear cuenta</button></div>
 
     <form class="lk-form" id="lkLogin" novalidate>
       <label>Correo<input type="email" id="lkEmail" required autocomplete="username" placeholder="tu@correo.com"></label>
@@ -986,7 +984,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
       <label>Crea tu contraseña personal<span class="lk-pw"><input type="password" id="rqNew" required autocomplete="new-password" placeholder="Mínimo 8 caracteres"><button type="button" class="lk-eye" aria-label="Mostrar contraseña"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
       <label>Repite tu contraseña<input type="password" id="rqNew2" required autocomplete="new-password" placeholder="Igual que arriba"></label>
       <div class="lk-msg" id="lkReqMsg" role="alert"></div>
-      <button class="lk-go" type="submit">Enviar solicitud</button>
+      <button class="lk-go" type="submit">Crear cuenta</button>
     </form>
 
     <form class="lk-form" id="lkNew" hidden novalidate>
@@ -1000,8 +998,8 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 
     <div class="lk-done" id="lkDone" hidden>
       <div class="ok"><svg class="i" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></div>
-      <b>Solicitud enviada</b>
-      <p>Un admin revisará tus datos. Cuando te aprueben podrás entrar con <b id="lkDoneMail"></b> y la contraseña personal que acabas de crear.</p>
+      <b>Cuenta creada</b>
+      <p>Ya puedes entrar con <b id="lkDoneMail"></b> y la contraseña personal que acabas de crear. Ve a "Iniciar sesión".</p>
     </div>
 
   </div>
@@ -1042,7 +1040,7 @@ const TABS = [
   {id:'apuntes',label:'Apuntes', icon:'<path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6zM6 3v18M10 8h6M10 12h6M10 16h3"/>'},
   {id:'plan',   label:'Plan de acción', short:'Plan', icon:'<path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/>'},
   {id:'recursos',label:'Plantillas y ejercicios', short:'Recursos', icon:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'},
-  {id:'solicitudes',label:'Solicitudes',short:'Solicitudes',admin:true,icon:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M16 11l2 2 4-4"/>'},
+  {id:'solicitudes',label:'Usuarios',short:'Usuarios',admin:true,icon:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M16 11l2 2 4-4"/>'},
   {id:'galeria',label:'Galería', icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>'},
 ];
 
@@ -1832,15 +1830,17 @@ $('#lkReq').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
   if(np!==np2){say(msg,'Las contraseñas no coinciden.','err');return;}
   if(np===codigo){say(msg,'Tu contraseña personal no puede ser igual al código del grupo.','err');return;}
   /* el código del grupo lo valida la base de datos; sin el código correcto la cuenta no se crea */
-  const {data,error}=await sb.auth.signUp({email,password:np,options:{data:{nombre,tel,foto:reqPhoto,codigo}}});
+  const {error}=await sb.auth.signUp({email,password:np,options:{data:{nombre,tel,foto:reqPhoto,codigo}}});
   if(error){
     if(/codigo_invalido|Database error/i.test(error.message))say(msg,'El código del grupo no es correcto. Pídelo a tu anfitrión.','err');
-    else if(/already registered/i.test(error.message))say(msg,'Ese correo ya tiene cuenta o una solicitud. Inicia sesión.','info');
+    else if(/already registered/i.test(error.message))say(msg,'Ese correo ya tiene cuenta. Inicia sesión.','info');
     else if(error.status===429)say(msg,'Demasiados intentos. Espera unos minutos.','err');
-    else say(msg,'No se pudo enviar la solicitud. Revisa los datos e inténtalo de nuevo.','err');
+    else say(msg,'No se pudo crear la cuenta. Revisa los datos e inténtalo de nuevo.','err');
     return;
   }
-  if(data.session)await sb.auth.signOut();   /* hasta que un admin apruebe, no entra */
+  /* sin aprobación: la cuenta queda lista al crearse, así que entra de una vez */
+  const {error:e2}=await sb.auth.signInWithPassword({email,password:np});
+  if(!e2){location.reload();return;}
   $('#lkReq').hidden=true;$('#lkDone').hidden=false;$('#lkDoneMail').textContent=email;
 });};
 
@@ -1855,20 +1855,19 @@ async function loadUsers(){
   reqRender();
 }
 function reqRender(){
-  const pend=users.filter(u=>u.estado==='pendiente').sort((a,b)=>a.creado-b.creado),act=users.filter(u=>u.estado==='aprobado'),rej=users.filter(u=>u.estado==='rechazado');
+  const act=users.filter(u=>u.estado==='aprobado'),rej=users.filter(u=>u.estado==='rechazado');
   const pwr=reqs.map(q=>({q,u:users.find(x=>x.id===q.user_id)})).filter(x=>x.u&&x.u.estado==='aprobado');
   const hasReq=id=>pwr.some(x=>x.u.id===id);
-  $('#reqCnt').textContent=pend.length;$('#pwReqCnt').textContent=pwr.length;
-  const total=pend.length+pwr.length,b=document.querySelector('.tab[data-tab="solicitudes"]');
+  $('#pwReqCnt').textContent=pwr.length;
+  const total=pwr.length,b=document.querySelector('.tab[data-tab="solicitudes"]');
   if(b){let g=b.querySelector('.bdg');if(!g){g=document.createElement('i');g.className='bdg';b.appendChild(g);}g.textContent=total;g.hidden=!total;}
   const card=(u,acts,note,showX)=>{const f=esc(u.nombre.split(' ')[0]);let x='';
     if(showX&&resetEdit===u.id)x=`<div class="ux"><label for="rsIn">Contraseña temporal para ${f}</label><div class="rsrow"><input class="f" id="rsIn" value="${genTemp()}" autocomplete="off"><button type="button" class="btn red" data-r="pwok">Asignar</button><button type="button" class="btn" data-r="pwcancel">Cancelar</button></div><small>Puedes cambiarla (mín. 8). ${f} tendrá que crear una personal al entrar.</small></div>`;
     else if(showX&&resetShown&&resetShown.id===u.id)x=`<div class="ux tmp"><span>Contraseña temporal</span><code>${esc(resetShown.pw)}</code><button type="button" class="btn" data-r="pwcopy">Copiar</button><small>Compártela con ${f}. Solo se muestra ahora; al entrar tendrá que crear la suya.</small></div>`;
     return `<div class="ucard" data-id="${esc(u.id)}">${avatarHTML(u,'big')}<div class="ui"><b>${esc(u.nombre)}${u.rol==='admin'?' <span class="rolebadge">Admin</span>':''}${u.must_change?' <span class="rolebadge" style="background:#eceef2;color:#40434a">Contraseña temporal</span>':''}</b><span>${esc(u.email)}</span><span>${u.tel?esc(u.tel):'Sin teléfono'}${note||''}</span></div><div class="ua">${acts}</div>${x}</div>`;};
-  $('#reqList').innerHTML=pend.map(u=>card(u,'<button type="button" class="btn red" data-r="ok">Aprobar</button><button type="button" class="btn" data-r="no">Rechazar</button>',' · solicitó '+ago(u.creado))).join('')||'<p class="kick">No hay solicitudes pendientes</p>';
   $('#pwReqList').innerHTML=pwr.map(({q,u})=>card(u,'<button type="button" class="btn red" data-r="pwnew">Asignar contraseña</button><button type="button" class="btn" data-r="pwdismiss">Descartar</button>',' · avisó '+ago(q.creado),true)).join('')||'<p class="kick">Nadie ha pedido una contraseña nueva</p>';
   $('#memList').innerHTML=act.map(u=>card(u,u.id===ME.id?'<span class="kick" style="margin:0">Tú</span>':(u.rol==='admin'?'':'<button type="button" class="btn" data-r="pwnew">Nueva contraseña</button>')+`<button type="button" class="btn" data-r="${u.rol==='admin'?'demote':'promote'}">${u.rol==='admin'?'Quitar admin':'Hacer admin'}</button><button type="button" class="btn" data-r="remove">Quitar acceso</button>`,'',!hasReq(u.id))).join('');
-  $('#rejList').innerHTML=rej.map(u=>card(u,'<button type="button" class="btn" data-r="again">Reconsiderar</button>')).join('')||'<p class="kick">Ninguna</p>';
+  $('#rejList').innerHTML=rej.map(u=>card(u,'<button type="button" class="btn" data-r="again">Restaurar acceso</button>')).join('')||'<p class="kick">Ninguna</p>';
 }
 $('#tabs').addEventListener('click',()=>{if(activeTab!=='solicitudes'){resetEdit=null;resetShown=null;}});
 $('#v-solicitudes').addEventListener('click',async e=>{
@@ -1890,9 +1889,7 @@ $('#v-solicitudes').addEventListener('click',async e=>{
     if(error){toast('No se pudo descartar');return;}
     reqs=reqs.filter(q=>q.user_id!==u.id);reqRender();toast('Aviso descartado');return;
   }
-  if(a==='ok'){patch={estado:'aprobado'};ok=first+' ya puede entrar';}
-  else if(a==='no'){patch={estado:'rechazado'};ok='Solicitud rechazada';}
-  else if(a==='again'){patch={estado:'pendiente'};ok='Solicitud reabierta';}
+  if(a==='again'){patch={estado:'aprobado'};ok=first+' vuelve a tener acceso';}
   else if(a==='promote'){if(!confirm('¿Hacer admin a '+u.nombre+'?'))return;patch={rol:'admin'};ok=first+' ahora es admin';}
   else if(a==='demote'){if(users.filter(x=>x.rol==='admin'&&x.estado==='aprobado').length<2){toast('Debe quedar al menos un admin');return;}patch={rol:'miembro'};ok='Admin quitado';}
   else if(a==='remove'){if(!confirm('¿Quitar el acceso a '+u.nombre+'?'))return;patch={estado:'rechazado'};ok='Acceso quitado';}

@@ -7,7 +7,7 @@
 -- ORDEN:
 --  1) NOTA: auth.users no se puede alterar desde el SQL Editor. Para crear el primer admin desde el dashboard,
 --     inserta antes ("bootstrap",1) en app_secrets (ver instrucciones), crea el usuario sdiaz@zigma3.com y bórralo después.
---  2) Dashboard > Authentication > Providers > Email: desactiva "Confirm email" (las altas las aprueba un admin).
+--  2) Dashboard > Authentication > Providers > Email: desactiva "Confirm email" (el acceso lo da el código del grupo).
 --  3) Pega y ejecuta este archivo completo en SQL Editor.
 --  4) Después ejecuta, en este orden: password_reset.sql (restablecer contraseñas con aprobación del admin),
 --     fechas.sql (calendario) y datos.sql (notas, galería, apuntes, plan de acción, recursos y generaciones).
@@ -52,7 +52,7 @@ create policy "admin ve todos" on public.profiles for select to authenticated us
 create policy "admin edita"    on public.profiles for update to authenticated using (public.is_admin()) with check (public.is_admin());
 -- sin políticas de insert/delete: los perfiles solo los crea el trigger de abajo.
 
--- ---------- alta: valida el código del grupo EN EL SERVIDOR y crea el perfil pendiente ----------
+-- ---------- alta: valida el código del grupo EN EL SERVIDOR y crea el perfil ya aprobado ----------
 create or replace function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path = public, extensions as $$
 declare h text; c text := coalesce(new.raw_user_meta_data->>'codigo', '');
@@ -64,13 +64,14 @@ begin
       raise exception 'codigo_invalido';
     end if;
   end if;
-  insert into public.profiles(id, nombre, email, tel, foto)
+  insert into public.profiles(id, nombre, email, tel, foto, estado)
   values (new.id,
           coalesce(new.raw_user_meta_data->>'nombre', ''),
           lower(new.email),
           coalesce(new.raw_user_meta_data->>'tel', ''),
-          coalesce(new.raw_user_meta_data->>'foto', ''));
-  -- el acceso lo aprueba un admin en el portal: el correo se da por confirmado para que nadie quede bloqueado
+          coalesce(new.raw_user_meta_data->>'foto', ''),
+          'aprobado');
+  -- sin aprobación de admin: el correo se da por confirmado para que nadie quede bloqueado
   update auth.users set email_confirmed_at = coalesce(email_confirmed_at, now()) where id = new.id;
   return new;
 end $$;
