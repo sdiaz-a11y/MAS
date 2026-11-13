@@ -1,6 +1,9 @@
 -- MAS · Arreglo de acceso: las cuentas nuevas entran de inmediato (sin aprobación de admin).
 -- Pégalo en SQL Editor y ejecútalo (se puede repetir). Al final muestra las últimas cuentas y su estado para verificar.
 
+-- 0) la columna que usa el inicio de sesión (la crea password_reset.sql; aquí se asegura)
+alter table public.profiles add column if not exists must_change boolean not null default false;
+
 -- 1) el alta crea el perfil YA aprobado
 create or replace function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path = public, extensions as $$

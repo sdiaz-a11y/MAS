@@ -1958,11 +1958,14 @@ const PEND_MSG='Tu solicitud sigue en revisión. Un admin la aprobará pronto.',
 
 function showMust(){document.querySelector('.lk-tabs').hidden=true;$('#lkLogin').hidden=true;$('#lkReq').hidden=true;$('#lkNew').hidden=false;$('#nwPass').focus();}
 $('#lkLogin').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
-  const msg=$('#lkMsg');
+  const msg=$('#lkMsg');say(msg,'','');   /* borra el aviso del intento anterior */
   const {data,error}=await sb.auth.signInWithPassword({email:$('#lkEmail').value.trim().toLowerCase(),password:$('#lkPass').value});
   if(error){say(msg,error.status===429?'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.':/not confirmed/i.test(error.message)?'Tu correo aún no está confirmado. Pide a un admin que lo active.':'Correo o contraseña incorrectos.','err');shake();return;}
-  const {data:p}=await sb.from('profiles').select('estado,must_change').eq('id',data.user.id).maybeSingle();
-  if(!p||p.estado!=='aprobado'){await sb.auth.signOut();say(msg,p&&p.estado==='rechazado'?REJ_MSG:PEND_MSG,'info');return;}
+  const {data:p,error:pe}=await sb.from('profiles').select('*').eq('id',data.user.id).maybeSingle();
+  /* antes, un error al leer el perfil se confundía con "solicitud en revisión" */
+  if(pe){console.error(pe);await sb.auth.signOut();say(msg,'No se pudo verificar tu cuenta ('+(pe.code||pe.message)+'). Inténtalo de nuevo.','err');shake();return;}
+  if(!p){await sb.auth.signOut();say(msg,'No encontramos el perfil de esta cuenta. Escribe a soporte.','err');shake();return;}
+  if(p.estado!=='aprobado'){await sb.auth.signOut();say(msg,p.estado==='rechazado'?REJ_MSG:PEND_MSG,'info');return;}
   if(p.must_change){showMust();return;}   /* entró con la contraseña temporal: debe crear la suya */
   location.reload();
 });};
