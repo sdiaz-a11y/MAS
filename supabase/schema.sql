@@ -4,7 +4,8 @@
 --     inserta antes ("bootstrap",1) en app_secrets (ver instrucciones), crea el usuario sdiaz@zigma3.com y bórralo después.
 --  2) Dashboard > Authentication > Providers > Email: desactiva "Confirm email" (las altas las aprueba un admin).
 --  3) Pega y ejecuta este archivo completo en SQL Editor.
---  4) Después ejecuta password_reset.sql (restablecer contraseñas con aprobación del admin).
+--  4) Después ejecuta, en este orden: password_reset.sql (restablecer contraseñas con aprobación del admin),
+--     fechas.sql (calendario) y datos.sql (notas, galería, apuntes, plan de acción, recursos y generaciones).
 
 create extension if not exists pgcrypto with schema extensions;
 
