@@ -1074,6 +1074,10 @@ async function loadAll(){
   await loadGens();   /* primero: las demás cargas se pintan según la generación actual */
   await Promise.all([loadNotas(),loadFotos(),plLoad(),rcLoad(),apLoad(),ME.rol==='admin'?loadMembers():null,loadFechas()]);
   renderTabs();render();plRender();apEnsure();
+  /* al recargar vuelve a la pestaña donde estabas (solo si sigue existiendo y puedes verla) */
+  let t=null;try{t=localStorage.getItem('mas-tab');}catch(e){}
+  const ok=t&&(TABS.some(x=>x.id===t&&(!x.admin||ME.rol==='admin'))||db.gens.some(g=>g.closed&&'gen-'+g.n===t));
+  if(ok&&t!=='inicio')go(t);
 }
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1195,6 +1199,7 @@ function toast(msg){let el=$('#toast');if(!el){el=document.createElement('div');
 })();
 function go(id){
   activeTab=id;
+  try{localStorage.setItem('mas-tab',id);}catch(e){}
   const isGen=id.startsWith('gen-'); if(isGen) renderGen(+id.slice(4));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===id));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===(isGen?'v-gen':'v-'+id)));
