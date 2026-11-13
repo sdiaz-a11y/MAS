@@ -1,5 +1,5 @@
 -- MAS · Instalación completa en UN solo archivo (schema + password_reset + fechas + datos).
--- Pégalo entero en Supabase > SQL Editor y ejecútalo. Es para una base NUEVA; si ya tienes la base andando, usa actualizar.sql.
+-- Pégalo entero en Supabase > SQL Editor y ejecútalo. Es para una base NUEVA; si ya tienes la base andando, usa actualizar.sql y portadas.sql.
 
 -- =================================== schema.sql ===================================
 -- MAS · Portal de miembros — esquema de acceso (Supabase)
@@ -246,6 +246,19 @@ drop policy if exists "autor borra fotos"    on public.fotos;
 create policy "miembros suben fotos" on public.fotos for insert to authenticated with check (public.is_member() and autor_id = auth.uid());
 create policy "autor edita fotos"    on public.fotos for update to authenticated using (autor_id = auth.uid() and public.is_member()) with check (autor_id = auth.uid());
 create policy "autor borra fotos"    on public.fotos for delete to authenticated using (autor_id = auth.uid() and public.is_member());
+
+-- ---------- portadas de las entregas (imagen de cada tarjeta en Notas; el archivo va en el bucket galeria/portadas) ----------
+create table if not exists public.entrega_portadas (
+  gen     int  not null references public.generaciones(n),
+  entrega int  not null check (entrega between 1 and 12),
+  path    text not null,
+  primary key (gen, entrega)
+);
+alter table public.entrega_portadas enable row level security;
+drop policy if exists "miembros ven portadas" on public.entrega_portadas;
+drop policy if exists "admin edita portadas"  on public.entrega_portadas;
+create policy "miembros ven portadas" on public.entrega_portadas for select to authenticated using (public.is_member());
+create policy "admin edita portadas"  on public.entrega_portadas for all    to authenticated using (public.is_admin()) with check (public.is_admin());
 
 -- ---------- plantillas y ejercicios (compartidos; archivos en el bucket 'recursos') ----------
 create table if not exists public.recursos (

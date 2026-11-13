@@ -579,6 +579,23 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 .cuad .tx small{display:block;color:#8d929d;font-size:12px;margin-top:2px;overflow-wrap:anywhere}
 .cuad .btn{flex:none}
 @media(max-width:560px){.cuad{flex-wrap:wrap}.cuad .btn{width:100%}}
+.folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;padding-top:6px}
+.folder{position:relative;display:flex;flex-direction:column;overflow:hidden;cursor:pointer;border-radius:16px;background:#fff;border:1px solid #dfe2e7;box-shadow:0 14px 26px -20px rgba(18,20,30,.55);transition:transform .3s var(--ease),box-shadow .3s,border-color .3s}
+.folder:hover{transform:translateY(-4px);border-color:#e9a3ac;box-shadow:0 0 0 1px rgba(209,15,31,.45),0 20px 32px -16px rgba(209,15,31,.4)}
+.folder:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+.fcover{position:relative;aspect-ratio:16/9;display:grid;place-items:center;overflow:hidden;background:linear-gradient(135deg,#2c2d33 0%,#0b0b0d 58%,#8f0914 120%)}
+.fcover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fcover .flab{position:absolute;left:14px;top:12px;font:700 10px "Montserrat",sans-serif;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.65)}
+.fcover .fnum{font:800 64px/1 "Montserrat",sans-serif;letter-spacing:-.02em;color:#fff}
+.fbody{padding:14px 16px 16px}
+.fbody b{display:block;font-size:16px}
+.fbody p{margin:4px 0 0;font-size:13px;color:#4a4d55}
+.fctl{position:absolute;right:10px;top:10px;z-index:3;display:flex;gap:6px}
+.fctl button{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:0;border-radius:99px;background:rgba(255,255,255,.94);color:#30333a;font:700 11px "Montserrat",sans-serif;cursor:pointer;box-shadow:0 4px 10px -4px rgba(0,0,0,.5)}
+.fctl button:hover{color:var(--red)}
+.fctl .i{width:14px;height:14px}
+.fhead{display:flex;align-items:center;gap:12px;margin:18px 0 4px}
+.fhead b{font:700 22px "Montserrat",sans-serif}
 .rc-ico.ejercicio{background:linear-gradient(160deg,#e23048,#8f0914)}
 .rc-ico .i{width:22px;height:22px}
 .rc-head b{display:block;font:700 15px/1.3 "Montserrat",sans-serif;margin-top:4px;overflow-wrap:anywhere}
@@ -769,7 +786,8 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
       <section class="view" id="v-notas">
         <h1>Notas</h1><div class="kick">El cuaderno de cada entrega y las fotos del grupo</div>
         <h2 class="sec caps"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg>Entregas</h2>
-        <div class="rows" id="entList"></div>
+        <div id="entList"></div>
+        <input type="file" id="coverFile" accept="image/*" hidden>
       </section>
 
       <!-- APUNTES (cuaderno) -->
@@ -1023,7 +1041,7 @@ const TABS = [
 ];
 
 /* ---------- Datos: todo vive en Supabase (esquema en supabase/datos.sql). Aquí solo se guarda lo ya cargado. ---------- */
-let db={currentGen:4,gens:[{n:4,year:2026}],members:[],photos:[]}, photoF='all', openE=new Set();   /* openE: entregas desplegadas en Notas */
+let db={currentGen:4,gens:[{n:4,year:2026}],members:[],photos:[]}, photoF='all', openEnt=null, covers={};   /* openEnt: entrega abierta en Notas (null = tarjetas); covers: portada de cada entrega */
 async function loadGens(){
   const {data,error}=await sb.from('generaciones').select('*').order('n');
   if(error){toast('No se pudieron cargar las generaciones');return;}
@@ -1040,13 +1058,21 @@ async function loadFotos(){
   db.photos=data.map(p=>({...p,url:by[p.path]||''}));
   render();
 }
+async function loadPortadas(){
+  const {data,error}=await sb.from('entrega_portadas').select('gen,entrega,path');
+  if(error){console.error(error);return;}
+  const signed=data.length?((await sb.storage.from('galeria').createSignedUrls(data.map(c=>c.path),43200)).data||[]):[];
+  const by=Object.fromEntries(signed.map(u=>[u.path,u.signedUrl]));
+  covers={};data.forEach(c=>{covers[c.gen+'-'+c.entrega]={path:c.path,url:by[c.path]||''};});
+  render();
+}
 async function loadMembers(){
   const {data}=await sb.rpc('nombres_miembros');
   db.members=data||[];
 }
 async function loadAll(){
   await loadGens();   /* primero: las demás cargas se pintan según la generación actual */
-  await Promise.all([loadFotos(),plLoad(),rcLoad(),apLoad(),loadMembers(),loadFechas()]);
+  await Promise.all([loadFotos(),loadPortadas(),plLoad(),rcLoad(),apLoad(),loadMembers(),loadFechas()]);
   renderTabs();render();plRender();apEnsure();
   /* al recargar vuelve a la pestaña donde estabas (solo si sigue existiendo y puedes verla) */
   let t=null;try{t=localStorage.getItem('mas-tab');}catch(e){}
@@ -1076,9 +1102,20 @@ function render(){
   const nc=cuadernos(cur()).length;$('#sN').textContent=nc+(nc===1?' cuaderno':' cuadernos'); $('#sF').textContent=curPhotos().length+' fotos';
   const g=db.gens.find(x=>x.n===cur());
   $('#genText').textContent=g.n+'ª GENERACIÓN';
-  $('#entList').innerHTML=entregas().map(e=>{
-    const cs=cuadernos(cur()).filter(r=>r.entrega===e),ps=curPhotos().filter(p=>p.entrega===e);
-    return `<details class="egrp" data-e="${e}" ${openE.has(e)?'open':''}><summary class="row"><div class="ico">${e}</div><div class="tx"><b>Entrega ${e}</b><p>${cs.length} ${cs.length===1?'cuaderno':'cuadernos'} · ${ps.length} ${ps.length===1?'foto':'fotos'}</p></div>${chev}</summary><div class="egb">${cs.map(r=>cuadRow(r)).join('')}${ps.length?`<div class="grid">${ps.map(photoCard).join('')}</div>`:''}${cs.length||ps.length?'':'<p class="kick">Aún no hay nada de esta entrega</p>'}</div></details>`;}).join('');
+  const el=$('#entList'),back='<svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>';
+  if(openEnt===null){
+    el.className='folders';
+    el.innerHTML=entregas().map(e=>{
+      const nc=cuadernos(cur()).filter(r=>r.entrega===e).length,np=curPhotos().filter(p=>p.entrega===e).length,cv=covers[cur()+'-'+e],img=cv&&cv.url;
+      const ctl='<div class="fctl admin-only"><button type="button" data-cover="'+e+'"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>'+(cv?'Cambiar':'Portada')+'</button>'+(cv?'<button type="button" data-uncover="'+e+'" aria-label="Quitar portada" title="Quitar portada"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>':'')+'</div>';
+      return `<div class="folder" role="button" tabindex="0" data-fold="${e}"><div class="fcover">${img?`<img src="${img}" alt="">`:`<span class="flab">Entrega</span><span class="fnum">${e}</span>`}${ctl}</div><div class="fbody"><b>Entrega ${e}</b><p>${nc} ${nc===1?'cuaderno':'cuadernos'} · ${np} ${np===1?'foto':'fotos'}</p></div></div>`;}).join('');
+  }else{
+    const e=openEnt,cs=cuadernos(cur()).filter(r=>r.entrega===e),ps=curPhotos().filter(p=>p.entrega===e);
+    el.className='';
+    el.innerHTML=`<div class="fhead"><button type="button" class="btn" data-back>${back} Entregas</button><b>Entrega ${e}</b></div>`
+      +`<h2 class="sec caps">Cuaderno de notas</h2>`+(cs.length?`<div class="rows">${cs.map(r=>cuadRow(r)).join('')}</div>`:'<p class="kick">El cuaderno de esta entrega se publicará pronto</p>')
+      +`<h2 class="sec caps">Fotos <span class="cnt">${ps.length}</span></h2>`+(ps.length?`<div class="grid">${ps.map(photoCard).join('')}</div>`:'<p class="kick">Aún no hay fotos de esta entrega</p>');
+  }
   const MES={ENE:0,FEB:1,MAR:2,ABR:3,MAY:4,JUN:5,JUL:6,AGO:7,SEP:8,OCT:9,NOV:10,DIC:11},MN=Object.keys(MES);
   const t0=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate());};
   const dateOf=x=>{if(x.f)return new Date(x.f+'T00:00');const d=new Date(t0().getFullYear(),MES[x.m],x.d);if(d<t0())d.setFullYear(d.getFullYear()+1);return d;};
@@ -1148,6 +1185,7 @@ function toast(msg){let el=$('#toast');if(!el){el=document.createElement('div');
 })();
 function go(id){
   activeTab=id;
+  if(id==='notas'&&openEnt!==null){openEnt=null;render();}   /* tocar la pestaña Notas vuelve a las tarjetas */
   try{localStorage.setItem('mas-tab',id);}catch(e){}
   const isGen=id.startsWith('gen-'); if(isGen) renderGen(+id.slice(4));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===id));
@@ -1166,13 +1204,17 @@ $('#genLabel').onclick=async()=>{
   const known=db.gens.find(x=>x.n===n);
   const {error}=await sb.rpc('set_generacion_actual',{p_n:n,p_anio:known?known.year:g.year+(n-g.n)});
   if(error){toast('No se pudo cambiar la generación');return;}
-  photoF='all'; await loadAll();
+  photoF='all'; openEnt=null; await loadAll();
 };
 renderTabs();
 $('#tabs').onclick=e=>{const b=e.target.closest('.tab'); if(b) go(b.dataset.tab);};
 document.addEventListener('click',e=>{
   const g=e.target.closest('[data-go]'); if(g) go(g.dataset.go);
   const dl=e.target.closest('[data-dl]'); if(dl){const r=rc.items.find(x=>x.id===dl.dataset.dl);if(r)rcDownload(r);return;}
+  const cb=e.target.closest('[data-cover]'); if(cb){coverFor=+cb.dataset.cover;$('#coverFile').click();return;}
+  const ub=e.target.closest('[data-uncover]'); if(ub){removeCover(+ub.dataset.uncover);return;}
+  const fo=e.target.closest('[data-fold]'); if(fo){openEnt=+fo.dataset.fold;render();$('#main').scrollTop=0;return;}
+  if(e.target.closest('[data-back]')){openEnt=null;render();$('#main').scrollTop=0;return;}
   const pa=e.target.closest('[data-pa]');
   if(pa){e.stopPropagation();phAction(pa.dataset.pa,pa.closest('.photo').dataset.id);return;}
   const p=e.target.closest('.photo');
@@ -1184,7 +1226,6 @@ document.addEventListener('click',e=>{
 $('#lb').onclick=()=>$('#lb').classList.remove('on');
 /* fechas importantes: viven en Supabase (tabla fechas), las ven todos los miembros */
 let fechas=[],openG=null;   /* openG: entregas desplegadas (se conserva al volver a pintar) */
-$('#entList').addEventListener('toggle',e=>{const k=+(e.target.dataset&&e.target.dataset.e);if(!k)return;e.target.open?openE.add(k):openE.delete(k);},true);
 $('#dates').addEventListener('toggle',e=>{const k=e.target.dataset&&e.target.dataset.k;if(k===undefined||!openG)return;e.target.open?openG.add(k):openG.delete(k);},true);
 async function loadFechas(){const {data,error}=await sb.from('fechas').select('*').order('fecha');if(error){toast('No se pudieron cargar las fechas');return;}fechas=data;render();}
 $('#dateForm').onsubmit=async e=>{e.preventDefault();
@@ -1192,6 +1233,29 @@ $('#dateForm').onsubmit=async e=>{e.preventDefault();
   if(error){toast('No se pudo agregar la fecha');return;}
   fechas.push(data);$('#dTexto').value='';$('#dLugar').value='';render();toast('Fecha agregada');};
 async function delDate(id){const {error}=await sb.from('fechas').delete().eq('id',id);if(error){toast('No se pudo quitar la fecha');return;}fechas=fechas.filter(x=>x.id!==id);render();toast('Fecha quitada');}
+/* ---- portadas de las entregas (solo admin): una imagen por entrega, en el bucket de la galería ---- */
+let coverFor=null;
+$('#coverFile').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f||coverFor===null)return;
+  const ent=coverFor,gen=cur();toast('Subiendo portada…');
+  try{
+    const url=await shrink(f,1200);if(!url)throw new Error('imagen no válida');
+    const blob=await (await fetch(url)).blob(),path='portadas/'+gen+'-'+ent+'-'+crypto.randomUUID()+'.jpg',old=covers[gen+'-'+ent];
+    const up=await sb.storage.from('galeria').upload(path,blob,{contentType:'image/jpeg'});if(up.error)throw up.error;
+    const {error}=await sb.from('entrega_portadas').upsert({gen,entrega:ent,path});
+    if(error){await sb.storage.from('galeria').remove([path]);throw error;}
+    if(old)await sb.storage.from('galeria').remove([old.path]);
+    await loadPortadas();toast('Portada actualizada');
+  }catch(err){console.error(err);toast('No se pudo guardar la portada');}
+};
+async function removeCover(ent){
+  const gen=cur(),old=covers[gen+'-'+ent];if(!old)return;
+  const {error}=await sb.from('entrega_portadas').delete().eq('gen',gen).eq('entrega',ent);
+  if(error){toast('No se pudo quitar la portada');return;}
+  await sb.storage.from('galeria').remove([old.path]);
+  delete covers[gen+'-'+ent];render();toast('Portada quitada');
+}
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('folder')){e.preventDefault();e.target.click();}});
 /* ---- subir fotos (cualquier miembro): cada foto lleva su entrega y una descripción; opcional, quiénes salen ---- */
 let phItems=[],phEdit=null,phFocus=null;
 const parseNames=t=>t.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean);
