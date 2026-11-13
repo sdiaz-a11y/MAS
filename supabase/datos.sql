@@ -245,3 +245,6 @@ end $$;
 
 -- ---------- portada de cada nota (imagen de la tarjeta en Memorias; el archivo va en el bucket galeria/portadas) ----------
 alter table public.recursos add column if not exists portada text;
+
+-- ---------- miniaturas de las fotos (ruta de la versión chica en el bucket galeria) ----------
+alter table public.fotos add column if not exists thumb text;

@@ -1,5 +1,5 @@
 -- MAS · Instalación completa en UN solo archivo (schema + password_reset + fechas + datos).
--- Pégalo entero en Supabase > SQL Editor y ejecútalo. Es para una base NUEVA; si ya tienes la base andando, usa los archivos sueltos (actualizar, portadas, etiquetas, arreglar_acceso, portada_notas).
+-- Pégalo entero en Supabase > SQL Editor y ejecútalo. Es para una base NUEVA; si ya tienes la base andando, usa los archivos sueltos (actualizar, portadas, etiquetas, arreglar_acceso, portada_notas, miniaturas).
 
 -- =================================== schema.sql ===================================
 -- MAS · Portal de miembros — esquema de acceso (Supabase)
@@ -429,3 +429,6 @@ end $$;
 
 -- ---------- portada de cada nota (imagen de la tarjeta en Memorias; el archivo va en el bucket galeria/portadas) ----------
 alter table public.recursos add column if not exists portada text;
+
+-- ---------- miniaturas de las fotos (ruta de la versión chica en el bucket galeria) ----------
+alter table public.fotos add column if not exists thumb text;
