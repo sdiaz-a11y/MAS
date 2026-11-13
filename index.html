@@ -1173,7 +1173,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-/* Supabase: la llave publishable es pública por diseño; la seguridad la dan las reglas RLS de la base (supabase/schema.sql).
+/* Supabase: la llave publishable es pública por diseño; la seguridad la dan las reglas RLS de la base (supabase/todo.sql).
    NUNCA pongas aquí la llave secret/service_role. */
 const sb=supabase.createClient("https://atoppjfwgaiuvasabxhu.supabase.co","sb_publishable__hXfGIDF3_9PBjJxJnYjYw_UkdtXBTz");
 let ME=null,deferredInstall=null;
@@ -1209,7 +1209,7 @@ const TABS = [
   {id:'galeria',label:'Galería', icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>'},
 ];
 
-/* ---------- Datos: todo vive en Supabase (esquema en supabase/datos.sql). Aquí solo se guarda lo ya cargado. ---------- */
+/* ---------- Datos: todo vive en Supabase (esquema en supabase/todo.sql). Aquí solo se guarda lo ya cargado. ---------- */
 const PAGE_FOTOS=24;   /* cuántas fotos se muestran de golpe; el resto con "Ver más" */
 let photoLimit=PAGE_FOTOS,detLimit=PAGE_FOTOS;
 let db={currentGen:4,gens:[{n:4,year:2026}],members:[],photos:[]}, photoF='all', openEnt=null, covers={};   /* openEnt: entrega abierta en Memorias (null = tarjetas); covers: portada de cada entrega */
@@ -2355,7 +2355,7 @@ function showPhoto(it){
   if(!it.url)fullUrl(it).then(()=>{if(!it.url||!$('#lb').classList.contains('on'))return;const im=$('#lbBig img');if(im)im.src=it.url;else showPhoto(it);});
 }
 /* ====================== NOTIFICACIONES ======================
-   La campana de la barra: avisos de que te etiquetaron en una foto. Los crea la base de datos (supabase/etiquetas.sql);
+   La campana de la barra: avisos de que te etiquetaron en una foto. Los crea la base de datos (supabase/todo.sql);
    llegan en vivo y también se consultan al volver a la pestaña y cada minuto y medio. */
 let notifs=[],notifSub=false;
 const npanel=$('#notifPanel');
