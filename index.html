@@ -650,6 +650,9 @@ main::-webkit-scrollbar{width:8px}main::-webkit-scrollbar-thumb{background:#c0c3
 .lk-prev .i{width:28px;height:28px}
 .lk-pbtn{padding:10px 14px;border-radius:11px;border:1px dashed rgba(255,255,255,.3);color:#e4e6eb;font:600 12px "Montserrat",sans-serif;letter-spacing:.04em;cursor:pointer;text-transform:none}
 .lk-pbtn:hover{border-color:#e0112b}
+.lk-link{justify-self:center;padding:6px 10px;border:0;border-radius:8px;background:transparent;color:#c9ccd3;font:600 12.5px "Manrope",sans-serif;letter-spacing:.02em;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(255,255,255,.3);cursor:pointer;transition:color .2s,text-decoration-color .2s}
+.lk-link:hover{color:#fff;text-decoration-color:#e0112b}
+.lk-link:focus-visible{outline:2px solid #e0112b;outline-offset:2px}
 .lk-done{text-align:center;display:grid;gap:10px;padding:6px 0}
 .lk-done[hidden]{display:none}
 .lk-done .ok{width:60px;height:60px;border-radius:50%;margin:0 auto;display:grid;place-items:center;background:linear-gradient(180deg,#f0485f,#a50c20);box-shadow:0 12px 24px -8px rgba(190,0,30,.8)}
@@ -971,7 +974,7 @@ body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-acti
       <label>Contraseña<span class="lk-pw"><input type="password" id="lkPass" required autocomplete="current-password" placeholder="••••••••"><button type="button" class="lk-eye" aria-label="Mostrar contraseña"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
       <div class="lk-msg" id="lkMsg" role="alert"></div>
       <button class="lk-go" type="submit">Entrar</button>
-      <button type="button" id="lkForgot" class="lk-pbtn" style="border:0;text-align:center;justify-self:center">¿Olvidaste tu contraseña?</button>
+      <button type="button" id="lkForgot" class="lk-link">¿Olvidaste tu contraseña?</button>
     </form>
 
     <form class="lk-form" id="lkReq" hidden novalidate>
