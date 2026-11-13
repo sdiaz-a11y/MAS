@@ -242,3 +242,6 @@ begin
     alter publication supabase_realtime add table public.notificaciones;
   end if;
 end $$;
+
+-- ---------- portada de cada nota (imagen de la tarjeta en Memorias; el archivo va en el bucket galeria/portadas) ----------
+alter table public.recursos add column if not exists portada text;

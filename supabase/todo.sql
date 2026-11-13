@@ -1,5 +1,5 @@
 -- MAS · Instalación completa en UN solo archivo (schema + password_reset + fechas + datos).
--- Pégalo entero en Supabase > SQL Editor y ejecútalo. Es para una base NUEVA; si ya tienes la base andando, usa actualizar.sql, portadas.sql, etiquetas.sql y arreglar_acceso.sql.
+-- Pégalo entero en Supabase > SQL Editor y ejecútalo. Es para una base NUEVA; si ya tienes la base andando, usa los archivos sueltos (actualizar, portadas, etiquetas, arreglar_acceso, portada_notas).
 
 -- =================================== schema.sql ===================================
 -- MAS · Portal de miembros — esquema de acceso (Supabase)
@@ -426,3 +426,6 @@ begin
     alter publication supabase_realtime add table public.notificaciones;
   end if;
 end $$;
+
+-- ---------- portada de cada nota (imagen de la tarjeta en Memorias; el archivo va en el bucket galeria/portadas) ----------
+alter table public.recursos add column if not exists portada text;
