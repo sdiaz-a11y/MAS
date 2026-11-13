@@ -2004,7 +2004,7 @@ $('#lkReq').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
   const np=$('#rqNew').value,np2=$('#rqNew2').value;
   if(np.length<8){bad('#rqNew','Tu contraseña personal debe tener al menos 8 caracteres.');return;}
   if(np!==np2){bad('#rqNew2','Las contraseñas no coinciden.');return;}
-  const {error}=await sb.auth.signUp({email,password:np,options:{data:{nombre,tel,foto:reqPhoto}}});
+  const {error}=await sb.auth.signUp({email,password:np,options:{data:{nombre,tel}}});
   if(error){
     if(/already registered/i.test(error.message))say(msg,'Ese correo ya tiene cuenta. Inicia sesión.','info');
     else if(error.status===429)say(msg,'Demasiados intentos. Espera unos minutos.','err');
@@ -2013,7 +2013,10 @@ $('#lkReq').onsubmit=e=>{e.preventDefault();withBtn(e.target,async()=>{
   }
   /* sin aprobación: la cuenta queda lista al crearse, así que entra de una vez */
   const {error:e2}=await sb.auth.signInWithPassword({email,password:np});
-  if(!e2){location.reload();return;}
+  if(!e2){
+    /* la foto no viaja en los datos de la cuenta (inflaba el token y el servidor respondía Bad Request): se guarda ya con la sesión iniciada */
+    const {error:ef}=await sb.rpc('set_mi_foto',{p_foto:reqPhoto});if(ef)console.error(ef);
+    location.reload();return;}
   $('#lkReq').hidden=true;$('#lkDone').hidden=false;$('#lkDoneMail').textContent=email;
 });};
 

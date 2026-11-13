@@ -1,5 +1,5 @@
 -- MAS · Instalación completa en UN solo archivo (schema + password_reset + fechas + datos).
--- Pégalo entero en Supabase > SQL Editor y ejecútalo. Es para una base NUEVA; si ya tienes la base andando, usa actualizar.sql, portadas.sql y etiquetas.sql.
+-- Pégalo entero en Supabase > SQL Editor y ejecútalo. Es para una base NUEVA; si ya tienes la base andando, usa actualizar.sql, portadas.sql, etiquetas.sql y arreglar_acceso.sql.
 
 -- =================================== schema.sql ===================================
 -- MAS · Portal de miembros — esquema de acceso (Supabase)
@@ -58,6 +58,15 @@ begin
   return new;
 end $$;
 revoke execute on function public.handle_new_user() from public, anon, authenticated;
+
+-- la foto de perfil NO viaja en los datos de la cuenta (inflaba el token de sesión y la base respondía "Bad Request"):
+-- la app la guarda con esta función, ya con la sesión iniciada
+create or replace function public.set_mi_foto(p_foto text) returns void
+language sql security definer set search_path = public as $
+  update public.profiles set foto = coalesce(p_foto, '') where id = auth.uid() and length(coalesce(p_foto, '')) < 400000;
+$;
+revoke execute on function public.set_mi_foto(text) from public, anon;
+grant  execute on function public.set_mi_foto(text) to authenticated;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created after insert on auth.users

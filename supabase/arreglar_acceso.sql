@@ -21,6 +21,18 @@ begin
 end $$;
 revoke execute on function public.handle_new_user() from public, anon, authenticated;
 
+-- la foto de perfil NO viaja en los datos de la cuenta (inflaba el token de sesión y la base respondía "Bad Request"):
+-- la app la guarda con esta función, ya con la sesión iniciada
+create or replace function public.set_mi_foto(p_foto text) returns void
+language sql security definer set search_path = public as $
+  update public.profiles set foto = coalesce(p_foto, '') where id = auth.uid() and length(coalesce(p_foto, '')) < 400000;
+$;
+revoke execute on function public.set_mi_foto(text) from public, anon;
+grant  execute on function public.set_mi_foto(text) to authenticated;
+
+-- 1b) quita la foto de los datos de las cuentas ya creadas (ya está copiada en el perfil); así el token vuelve a ser chico
+update auth.users set raw_user_meta_data = raw_user_meta_data - 'foto' where raw_user_meta_data->>'foto' is not null;
+
 -- 2) las cuentas que quedaron pendientes entran también (los rechazados siguen sin acceso)
 update public.profiles set estado = 'aprobado' where estado = 'pendiente';
 
